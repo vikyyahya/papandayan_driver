@@ -50,19 +50,13 @@ class History extends Component {
               justifyContent: "center",
             }}
           >
-            <TouchableOpacity style={{ marginHorizontal: moderateScale(10) }}>
-              <Text style={styles.text_12}>Pick Up</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ marginHorizontal: moderateScale(10) }}>
-              <Text style={styles.text_12}>Drop Off</Text>
-            </TouchableOpacity>
+           
           </View>
 
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
-              marginVertical: verticalScale(10),
             }}
           >
             <View>

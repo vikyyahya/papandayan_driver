@@ -66,7 +66,8 @@ class Home extends Component {
               </Text>
 
               <View>
-                <View
+                <TouchableOpacity
+                onPress={()=> this.props.navigation.navigate("ListOrder")}
                   style={{
                     flexDirection: "row",
                     height: verticalScale(90),
@@ -124,8 +125,9 @@ class Home extends Component {
                     }}
                     source={require("../../../assets/image/ic_arrow_right.png")}
                   ></Image>
-                </View>
-                <View
+                </TouchableOpacity>
+                <TouchableOpacity
+                onPress={()=> this.props.navigation.navigate("ListOrder")}
                   style={{
                     flexDirection: "row",
                     height: verticalScale(90),
@@ -183,8 +185,9 @@ class Home extends Component {
                     }}
                     source={require("../../../assets/image/ic_arrow_right.png")}
                   ></Image>
-                </View>
-                <View
+                </TouchableOpacity>
+                <TouchableOpacity
+                onPress={()=> this.props.navigation.navigate("ListOrder")}
                   style={{
                     flexDirection: "row",
                     height: verticalScale(90),
@@ -243,7 +246,7 @@ class Home extends Component {
                     }}
                     source={require("../../../assets/image/ic_arrow_right.png")}
                   ></Image>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
           </View>

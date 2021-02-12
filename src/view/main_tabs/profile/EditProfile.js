@@ -81,7 +81,7 @@ class EditProfile extends Component {
             >
               <Image
                 style={styles.icon_left_arrow}
-                source={require("../../../assets/image/left-arrow.png")}
+                source={require("../../../assets/image/left-arrow-black.png")}
               ></Image>
             </TouchableOpacity>
 
@@ -164,12 +164,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingTop: verticalScale(18),
-    backgroundColor: "#A80002",
+    // backgroundColor: "#A80002",
   },
   text_header: {
     fontFamily: "Montserrat-Bold",
     fontSize: 18,
-    color: "white",
   },
   text_title_20: {
     fontSize: 20,
@@ -195,8 +194,8 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(8),
   },
   icon_left_arrow: {
-    width: moderateScale(20),
-    height: moderateScale(20),
+    width: moderateScale(24),
+    height: moderateScale(24),
     resizeMode: "stretch",
   },
   view_icon_left_arrow: {
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
   profil_picture: {
     width: "100%",
     height: verticalScale(150),
-    backgroundColor: "#A80002",
+    // backgroundColor: "#A80002",
     justifyContent: "center",
     alignItems: "center",
   },

@@ -46,9 +46,9 @@ class Rates extends Component {
                 source={require("../../../assets/image/left-arrow-black.png")}
               ></Image>
             </TouchableOpacity>
-            <Text style={styles.text_header}>Tarif</Text>
+            <Text style={styles.text_header}>Notifikasi</Text>
           </View>
-          <View style={[styles.content, { flexDirection: "row" }]}>
+          {/* <View style={[styles.content, { flexDirection: "row" }]}>
             <View style={{ flex: 1, marginRight: 5.5 }}>
               <Text style={styles.title}>Kota Asal</Text>
               <TextInput
@@ -67,19 +67,19 @@ class Rates extends Component {
                 onChangeText={(name) => this.setState({ name })}
               ></TextInput>
             </View>
-          </View>
+          </View> */}
           <View style={styles.content}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.button_primary}
               // onPress={() => this.gotoEditProfile()}
             >
               <Text style={styles.text_title_14}>CEK TARIF</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                marginTop: verticalScale(39),
+                marginTop: verticalScale(10),
               }}
             >
               <View style={styles.icon_armada}>

@@ -418,7 +418,7 @@ class Profil extends Component {
           >
             <Image
               style={styles.icon_left_arrow}
-              source={require("../../../assets/image/left-arrow.png")}
+              source={require("../../../assets/image/left_arrow_black.png")}
             ></Image>
           </TouchableOpacity>
 
@@ -433,7 +433,7 @@ class Profil extends Component {
           >
             <View
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#000000",
                 width: 3,
                 height: 3,
                 margin: 2,
@@ -442,7 +442,7 @@ class Profil extends Component {
             ></View>
             <View
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#000000",
                 width: 3,
                 height: 3,
                 margin: 2,
@@ -451,7 +451,7 @@ class Profil extends Component {
             ></View>
             <View
               style={{
-                backgroundColor: "#FFFFFF",
+                backgroundColor: "#000000",
                 width: 3,
                 height: 3,
                 margin: 2,
@@ -490,35 +490,7 @@ class Profil extends Component {
             <Text style={styles.text_title_14}>Keluar</Text>
           </TouchableOpacity> */}
         </View>
-        <BottomSheet
-          bottomSheerColor="#F1F1F1"
-          ref="BottomSheet"
-          initialPosition={"35%"} //200, 300
-          snapPoints={["35%", "100%"]}
-          isBackDrop={false}
-          headerStyle={{
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            backgroundColor: "#FBFAF8",
-          }}
-          header={this.renderHeaderBS()}
-          body={
-            <View
-              style={{
-                backgroundColor: "#FBFAF8",
-                height: "1000%",
-              }}
-            >
-              {/* <Text style={{ fontSize: 10 }}>Body jshdjshdks</Text> */}
-              <FlatList
-                extraData={this.state.idSelected}
-                data={this.state.data_address}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={this.renderAddress}
-              ></FlatList>
-            </View>
-          }
-        />
+       
         <Loading visible={this.state.isLoading}></Loading>
       </SafeAreaView>
     );
@@ -537,12 +509,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingTop: verticalScale(10),
-    backgroundColor: "#A80002",
+    // backgroundColor: "#A80002",
   },
   text_header: {
     fontFamily: "Montserrat-Bold",
     fontSize: 18,
-    color: "white",
   },
   text_title_20: {
     fontSize: 20,
@@ -583,13 +554,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: moderateScale(10),
     width: moderateScale(20),
-    height: moderateScale(20),
+    height: moderateScale(12),
     resizeMode: "stretch",
   },
   profil_picture: {
     width: "100%",
     height: verticalScale(150),
-    backgroundColor: "#A80002",
+    // backgroundColor: "#A80002",
     justifyContent: "center",
     alignItems: "center",
   },
