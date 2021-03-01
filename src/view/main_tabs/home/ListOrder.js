@@ -20,11 +20,27 @@ import {
 import {Icon} from 'native-base';
 const {width, height} = Dimensions.get('window');
 
+const DATA = [
+  {
+    id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
+    title: "First Item",
+  },
+  {
+    id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
+    title: "Second Item",
+  },
+  {
+    id: "58694a0f-3da1-471f-bd96-145571e29d72",
+    title: "Third Item",
+  },
+];
+
 class ListOrder extends Component {
   constructor(props) {
     super(props);
     this.state = {
       pageIndex: 0,
+      selectedId: ''
     };
   }
   componentDidMount() {
@@ -43,6 +59,10 @@ class ListOrder extends Component {
   }
   gotoPickUp() {
     this.props.navigation.navigate('PickUp');
+  }
+
+  renderItem(){
+
   }
 
   render() {
@@ -68,9 +88,7 @@ class ListOrder extends Component {
           <Text style={styles.text_header}>No. Order 34000912</Text>
         </View>
 
-        <KeyboardAwareScrollView
-          enableResetScrollToCoords={false}
-          contentContainerStyle={{flexGrow: 1}}>
+     
           <View style={styles.container}>
             <View style={styles.content}>
               <View
@@ -94,68 +112,91 @@ class ListOrder extends Component {
                   borderRadius: moderateScale(12),
                   backgroundColor: '#FFFFFF',
                   alignItems: 'center',
-                  justifyContent:"center",
+                  justifyContent: 'center',
                   paddingHorizontal: moderateScale(5),
-                  marginTop:verticalScale(16)
+                  paddingVertical: verticalScale(8),
+                  marginTop: verticalScale(16),
                 }}>
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    marginVertical: verticalScale(16)
+                    marginVertical: verticalScale(16),
                   }}>
                   <Image
                     style={{
-                      width: moderateScale(25),
-                      height: moderateScale(25),
+                      width: moderateScale(30),
+                      height: moderateScale(30),
                     }}
                     source={require('../../../assets/image/ic_box_red.png')}></Image>
 
-                    <View style={{marginHorizontal:moderateScale(10)}}>
-                      <Text style={styles.text_11}>Total Order</Text>
-                      <Text style={styles.text_16_bold}>12</Text>
-                    </View>
+                  <View style={{marginHorizontal: moderateScale(10)}}>
+                    <Text style={styles.text_10}>Total Order</Text>
+                    <Text style={styles.text_18_bold}>12</Text>
+                  </View>
                 </View>
-             
+
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: '#E2E2E2',
+                    height: '80%',
+                    marginHorizontal: moderateScale(3),
+                  }}></View>
+
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    marginVertical: verticalScale(16)
+                    marginVertical: verticalScale(16),
                   }}>
                   <Image
                     style={{
-                      width: moderateScale(25),
-                      height: moderateScale(25),
+                      width: moderateScale(30),
+                      height: moderateScale(30),
                     }}
                     source={require('../../../assets/image/ic_volume.png')}></Image>
 
-                    <View style={{marginHorizontal:moderateScale(10)}}>
-                      <Text style={styles.text_11}>Volume (M3)</Text>
-                      <Text style={styles.text_16_bold}>96,3</Text>
-                    </View>
+                  <View style={{marginHorizontal: moderateScale(10)}}>
+                    <Text style={styles.text_10}>Volume (M3)</Text>
+                    <Text style={styles.text_18_bold}>96,3</Text>
+                  </View>
                 </View>
-          
+
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: '#E2E2E2',
+                    height: '80%',
+                    marginHorizontal: moderateScale(3),
+                  }}></View>
+
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    marginVertical: verticalScale(16)
+                    marginVertical: verticalScale(16),
                   }}>
                   <Image
                     style={{
-                      width: moderateScale(25),
-                      height: moderateScale(25),
+                      width: moderateScale(30),
+                      height: moderateScale(30),
                     }}
                     source={require('../../../assets/image/ic_berat.png')}></Image>
 
-                    <View style={{marginHorizontal:moderateScale(10)}}>
-                      <Text style={styles.text_11}>Berat (Kg)</Text>
-                      <Text style={styles.text_16_bold}>782,3</Text>
-                    </View>
+                  <View style={{marginHorizontal: moderateScale(10)}}>
+                    <Text style={styles.text_10}>Berat (Kg)</Text>
+                    <Text style={styles.text_18_bold}>782,3</Text>
+                  </View>
                 </View>
-          
               </View>
+
+              <FlatList
+                data={DATA}
+                renderItem={this.renderItem()}
+                keyExtractor={(item) => item.id}
+                extraData={this.state.selectedId}
+              />
 
               <View
                 style={{
@@ -239,7 +280,6 @@ class ListOrder extends Component {
               </View>
             </View>
           </View>
-        </KeyboardAwareScrollView>
       </SafeAreaView>
     );
   }
@@ -371,9 +411,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Bold',
     fontSize: 12,
   },
-  text_11: {
+  text_10: {
     fontFamily: 'Montserrat-Regular',
-    fontSize: 11,
+    fontSize: 10,
   },
   text_16: {
     textAlign: 'left',
@@ -383,6 +423,10 @@ const styles = StyleSheet.create({
   text_16_bold: {
     fontFamily: 'Montserrat-Bold',
     fontSize: 16,
+  },
+  text_18_bold: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 18,
   },
   text_14_bold: {
     fontFamily: 'Montserrat-Bold',

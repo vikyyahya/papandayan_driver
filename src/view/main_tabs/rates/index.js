@@ -48,26 +48,7 @@ class Rates extends Component {
             </TouchableOpacity>
             <Text style={styles.text_header}>Notifikasi</Text>
           </View>
-          {/* <View style={[styles.content, { flexDirection: "row" }]}>
-            <View style={{ flex: 1, marginRight: 5.5 }}>
-              <Text style={styles.title}>Kota Asal</Text>
-              <TextInput
-                style={styles.text_input}
-                placeholder="Kota Asal"
-                value={this.state.name}
-                onChangeText={(name) => this.setState({ name })}
-              ></TextInput>
-            </View>
-            <View style={{ flex: 1, marginLeft: 5.5 }}>
-              <Text style={styles.title}>Kota Tujuan</Text>
-              <TextInput
-                style={styles.text_input}
-                placeholder="Kota Tujuan"
-                value={this.state.name}
-                onChangeText={(name) => this.setState({ name })}
-              ></TextInput>
-            </View>
-          </View> */}
+       
           <View style={styles.content}>
             {/* <TouchableOpacity
               style={styles.button_primary}
