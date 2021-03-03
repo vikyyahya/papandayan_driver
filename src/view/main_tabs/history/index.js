@@ -45,18 +45,32 @@ class History extends Component {
         <View style={styles.content}>
           <View
             style={{
-              flexDirection: "row",
-              marginVertical: verticalScale(24),
-              justifyContent: "center",
+              backgroundColor: "#FFFFFF",
+              width: width - moderateScale(40),
+              borderRadius: 12,
+              paddingHorizontal: moderateScale(10),
+              marginBottom: verticalScale(20),
             }}
           >
-           
+            <TextInput placeholder="Hari Ini"></TextInput>
           </View>
+
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: "Montserrat-Regular",
+              fontWeight: "bold",
+              color: "#A80002",
+            }}
+          >
+            Hari Ini
+          </Text>
 
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
+              marginTop: verticalScale(16),
             }}
           >
             <View>
@@ -81,9 +95,7 @@ class History extends Component {
                   color: "#717171",
                 },
               ]}
-            >
-              Transit
-            </Text>
+            ></Text>
           </View>
 
           <View
@@ -116,9 +128,7 @@ class History extends Component {
                   color: "#717171",
                 },
               ]}
-            >
-              Transit
-            </Text>
+            ></Text>
           </View>
 
           <View
@@ -153,9 +163,7 @@ class History extends Component {
                   color: "#717171",
                 },
               ]}
-            >
-              Terkirim
-            </Text>
+            ></Text>
           </View>
         </View>
       </SafeAreaView>

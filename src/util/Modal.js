@@ -88,7 +88,6 @@ class Modals extends Component {
     return (
       <View style={styles.centeredView}>
         {this.renderError()}
-
         {this.renderModalWarning}
       </View>
     );

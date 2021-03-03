@@ -15,6 +15,8 @@ import SplashScreen from "../view/splash_screen";
 import IntroScreen from "../view/intro_screen";
 import Home from "../view/main_tabs/home";
 import ListOrder from "../view/main_tabs/home/ListOrder";
+import DetailOrder from "../view/main_tabs/home/DetailOrder";
+
 import Rates from "../view/main_tabs/rates";
 import History from "../view/main_tabs/history";
 import Profile from "../view/main_tabs/profile";
@@ -196,13 +198,21 @@ const AppNavigation = () => {
           name="PickupSuccess"
           component={PickupSuccess}
         />
-         <Stack.Screen
+        <Stack.Screen
           options={{
             headerShown: false,
             animationEnabled: false,
           }}
           name="ListOrder"
           component={ListOrder}
+        />
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            animationEnabled: false,
+          }}
+          name="DetailOrder"
+          component={DetailOrder}
         />
       </Stack.Navigator>
     </NavigationContainer>
