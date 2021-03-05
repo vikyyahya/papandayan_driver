@@ -116,9 +116,10 @@ class Profil extends Component {
         this.setState({ phone: value.phone });
         this.setLoading(false);
       } else if (response.code == 4001) {
-        this.props.navigation.replace("Login");
+        this.goLogout()
       } else if (response.message == "Unauthenticated.") {
-        this.props.navigation.replace("Login");
+        this.goLogout()
+
       }
     });
   }

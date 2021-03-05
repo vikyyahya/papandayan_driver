@@ -1,5 +1,8 @@
 export const BASE_URL = "https://papandayan.ival.online/public/";
-export const LOGIN = "api/login";
+export const LOGIN = "api/login-driver";
+export const PICKUP_DRIVER = "api/driver/pickup/get-by-pickup-plan";
+
+
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";
 export const CITIES = "api/get-cities";

@@ -3,6 +3,9 @@ import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
+import { BASE_URL,PICKUP_DRIVER,getData,postData } from "../../../network/ApiService";
+import { getValue } from "../../../util/AsyncStorage";
+import { LOGIN_STATUS,TOKEN } from "../../../util/StringConstans";
 import {
   Text,
   View,
@@ -32,6 +35,7 @@ class Home extends Component {
       saveData("SENDER_ADDRESS", null);
       saveData("RECEIVER_ADDRESS", null);
       saveData("COLLECTOR_ADDRESS", null);
+      this.getPickupPlan()
     });
   }
   componentWillUnmount() {
@@ -43,6 +47,26 @@ class Home extends Component {
   }
   gotoPickUp() {
     this.props.navigation.navigate("PickUp");
+  }
+
+  async getPickupPlan(){
+    var token =  await getValue(TOKEN);
+    console.log("response token", token)
+    var parans= {
+      "perPage": 10,
+      "page": 1,
+      "id": "",
+      "name": "",
+      "city": "",
+      "district": "",
+      "village": "",
+      "picktime": "",
+      "sort": "",
+      "pickupPlanId": 1
+  }
+    await postData(BASE_URL+PICKUP_DRIVER,parans,token).then((response)=>{
+      console.log("response getPIckup", response)
+    })
   }
 
   render() {
