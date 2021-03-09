@@ -3,6 +3,7 @@ import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
+import { Picker } from "@react-native-picker/picker";
 import {
   Text,
   View,
@@ -44,6 +45,7 @@ class DetailOrder extends Component {
       modalVisible: false,
       selectedId: "",
       reason: "",
+      status:""
     };
   }
   componentDidMount() {
@@ -62,6 +64,10 @@ class DetailOrder extends Component {
   }
   gotoPickUp() {
     this.props.navigation.navigate("PickUp");
+  }
+
+  onValueStatus(value,label){
+    this.setState({status: value})
   }
 
   renderItem() {}
@@ -246,6 +252,36 @@ class DetailOrder extends Component {
             </View>
             <View style={styles.line}></View>
           </View>
+          <View 
+          style={{width:width - moderateScale(40),marginTop: verticalScale(20),marginBottom:verticalScale(10)}}
+          >
+          <Text>Status Pickup</Text>
+          </View>
+          <View
+           style={{
+            width: width - moderateScale(40),
+            paddingHorizontal: moderateScale(16),
+            backgroundColor: "#FFFFFF",
+            borderRadius: moderateScale(12),
+          }}
+          >
+              <Picker
+                style={styles.picker}
+                itemStyle={{
+                  fontSize: moderateScale(3),
+                }}
+                mode="dropdown"
+                placeholder="- Pilih -"
+                selectedValue={this.state.status}
+                onValueChange={(value, label) => this.onValueStatus(value, label)}
+              >
+                <Picker.Item label="- Pilih -" value="" />
+                   <Picker.Item key={0} label="sukses" value="sukses" />
+                   <Picker.Item key={1} label="gagal" value="gagal" />
+                   <Picker.Item key={2} label="ada perubahan" value="ada perubahan" />
+                
+              </Picker>
+          </View>
         </View>
         {this.renderModal()}
         <View
@@ -256,7 +292,7 @@ class DetailOrder extends Component {
             bottom: 20,
           }}
         >
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => this.setState({ modalVisible: true })}
             style={[
               styles.button_primary,
@@ -268,11 +304,11 @@ class DetailOrder extends Component {
             ]}
           >
             <Text style={[styles.text_14, { color: "#FFFFFF" }]}>BATAL</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             style={[
               styles.button_primary,
-              { flex: 1, marginLeft: moderateScale(10) },
+              { flex: 1},
             ]}
           >
             <Text style={[styles.text_14, { color: "#FFFFFF" }]}>PICK UP</Text>
@@ -420,6 +456,11 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
+  },
+  picker: {
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    color: "#8D8F92",
   },
   line: {
     width: "100%",

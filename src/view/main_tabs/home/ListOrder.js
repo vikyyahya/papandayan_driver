@@ -49,6 +49,7 @@ class ListOrder extends Component {
       saveData("RECEIVER_ADDRESS", null);
       saveData("COLLECTOR_ADDRESS", null);
     });
+    console.log("data componentDidMount", this.props.route)
   }
   componentWillUnmount() {
     this._unsubscribe();

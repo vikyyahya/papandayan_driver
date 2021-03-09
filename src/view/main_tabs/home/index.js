@@ -28,6 +28,8 @@ class Home extends Component {
     super(props);
     this.state = {
       pageIndex: 0,
+      data_pickup:[],
+      selectedId:""
     };
   }
   componentDidMount() {
@@ -42,11 +44,10 @@ class Home extends Component {
     this._unsubscribe();
   }
 
-  gotoDropOff() {
-    this.props.navigation.navigate("DropOff");
-  }
-  gotoPickUp() {
-    this.props.navigation.navigate("PickUp");
+  goLogout() {
+    saveData(TOKEN, "");
+    saveData(LOGIN_STATUS, "0");
+    this.props.navigation.replace("Login");
   }
 
   async getPickupPlan(){
@@ -60,13 +61,93 @@ class Home extends Component {
       "city": "",
       "district": "",
       "village": "",
+      "street": "",
       "picktime": "",
       "sort": "",
       "pickupPlanId": 1
   }
     await postData(BASE_URL+PICKUP_DRIVER,parans,token).then((response)=>{
       console.log("response getPIckup", response)
+      if (response.success == true) {
+        this.setState({data_pickup: response.data.data})
+      console.log("response getPIckup", response.data.data)
+
+      }else if(response.message == "Unauthenticated."){
+        this.goLogout()
+      }
+
+      })
+  }
+
+  moveToListOrder(){
+    this.props.navigation.navigate("ListOrder",{
+      data_pickup: this.state.data_pickup
     })
+  }
+
+  renderItem({data}){
+    return(
+            <TouchableOpacity
+                onPress={()=> this.moveToListOrder()}
+                  style={{
+                    flexDirection: "row",
+                    height: verticalScale(90),
+                    backgroundColor: "#FFFFFF",
+                    width: width - moderateScale(40),
+                    borderRadius: moderateScale(12),
+                    alignItems: "center",
+                    marginTop: verticalScale(16),
+                  }}
+                >
+                  <View
+                    style={{
+                      width: moderateScale(4),
+                      height: verticalScale(16),
+                      backgroundColor: "#A80002",
+                    }}
+                  ></View>
+                  <Image
+                    style={{
+                      width: moderateScale(48),
+                      height: moderateScale(48),
+                      marginHorizontal: moderateScale(12),
+                    }}
+                    source={require("../../../assets/image/ic_box_red.png")}
+                  ></Image>
+                  <View>
+                    <Text style={styles.text_14_bold}>#0930.15032021</Text>
+                    <Text style={[styles.text_11, { color: "#262F56" }]}>
+                      Total 12 order pelanggan
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: moderateScale(48),
+                      height: moderateScale(48),
+                      backgroundColor: "#E5E5E5",
+                      borderRadius: moderateScale(50),
+                      justifyContent: "center",
+                      alignItems: "center",
+                      marginHorizontal: moderateScale(12),
+                    }}
+                  >
+                    <Text style={styles.text_12}>
+                      <Text style={[styles.text_12_bold, { color: "#A80002" }]}>
+                        3
+                      </Text>
+                      / 12
+                    </Text>
+                  </View>
+                  <Image
+                    style={{
+                      width: moderateScale(10),
+                      height: moderateScale(15),
+                      marginHorizontal: moderateScale(12),
+                    }}
+                    source={require("../../../assets/image/ic_arrow_right.png")}
+                  ></Image>
+            </TouchableOpacity>
+    )
   }
 
   render() {
@@ -90,6 +171,13 @@ class Home extends Component {
               </Text>
 
               <View>
+
+              <FlatList
+                data={this.state.data_pickup}
+                renderItem={this.renderItem}
+                keyExtractor={(item,index) => index}
+                extraData={this.state.selectedId}
+              />
                 <TouchableOpacity
                 onPress={()=> this.props.navigation.navigate("ListOrder")}
                   style={{
