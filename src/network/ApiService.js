@@ -1,7 +1,10 @@
 export const BASE_URL = "https://papandayan.ival.online/public/";
 export const LOGIN = "api/login-driver";
-export const PICKUP_DRIVER = "api/driver/pickup/get-by-pickup-plan";
-
+export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
+export const GET_BY_PICKUP_PLANE = "api/driver/pickup/get-by-pickup-plan";
+export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
+export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
+export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
 
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";

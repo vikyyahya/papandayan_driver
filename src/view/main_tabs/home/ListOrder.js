@@ -1,9 +1,15 @@
-import React, { Component } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
+import { BASE_URL,GET_BY_PICKUP_PLANE,TOTAL_VOL_DRIVER,getData,postData } from "../../../network/ApiService";
+import { getValue } from "../../../util/AsyncStorage";
+import { LOGIN_STATUS,TOKEN } from "../../../util/StringConstans";
+import  moment  from "moment";
+import { Loading } from "../../../util/Loading";
 import {
+
   Text,
   View,
   StyleSheet,
@@ -19,7 +25,6 @@ import {
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
-
 const DATA = [
   {
     id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
@@ -35,281 +40,283 @@ const DATA = [
   },
 ];
 
-class ListOrder extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      pageIndex: 0,
-      selectedId: "",
-    };
-  }
-  componentDidMount() {
-    this._unsubscribe = this.props.navigation.addListener("focus", async () => {
-      saveData("SENDER_ADDRESS", null);
-      saveData("RECEIVER_ADDRESS", null);
-      saveData("COLLECTOR_ADDRESS", null);
-    });
-    console.log("data componentDidMount", this.props.route)
-  }
-  componentWillUnmount() {
-    this._unsubscribe();
-  }
+export default function ListOrder({ navigation,route }) {
+    const [data_pickup, setDataPickup] = useState([]);
+    const [selectedId, setSelectedId] = useState(0);
+    const [kg, setKg] = useState(0);
+    const [volume, setVolume] = useState(0);
+    const { data_pickup_plan } = route.params;
+    console.log("data_pickup_plan", data_pickup_plan)
 
-  gotoDropOff() {
-    this.props.navigation.navigate("DropOff");
-  }
-  gotoPickUp() {
-    this.props.navigation.navigate("PickUp");
-  }
 
-  renderItem() {}
+    useEffect(() => {
+        const unsubscribe = navigation.addListener("focus", () => {
+          // getUrlVoice();
+         getPickupPlan()
+         getVolumeAndTotal()
+        });
+        return unsubscribe;
+    }, []);
 
-  render() {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
-        <Header></Header>
-        <View
+    useEffect(()=>{
+      getPickupPlan()
+      getVolumeAndTotal()
+    },[]);
+
+    const goLogout = ()=> {
+        saveData(TOKEN, "");
+        saveData(LOGIN_STATUS, "0");
+        navigation.replace("Login");
+      }
+
+    const getVolumeAndTotal = async ()=>{
+      var token =  await getValue(TOKEN);
+      var parans= {
+        pickupPlanId : data_pickup_plan.id
+      }
+
+      await postData(BASE_URL+TOTAL_VOL_DRIVER,parans,token).then((response)=>{
+        console.log("response TOTAL_VOL_DRIVER", response)
+        if(response.success == true){
+          setKg(response.data.kilo)
+          setVolume(response.data.volume)
+        }else{
+
+        }
+        
+      }).catch((error)=>{
+        console.log("error TOTAL_VOL_DRIVER", error)
+      });
+
+    }
+
+    const getPickupPlan = async() =>{
+        var token =  await getValue(TOKEN);
+        console.log("response token", token)
+        var date = moment("2021-03-03").format('YYYY-MM-DD');
+        var parans= {
+          "perPage": 10,
+          "page": 1,
+          "id": "",
+          "name": "",
+          "city": "",
+          "district": "",
+          "village": "",
+          "street": "",
+          "picktime": "",
+          "sort": "",
+          "pickupPlanId": 1
+        }
+        await postData(BASE_URL+GET_BY_PICKUP_PLANE,parans,token).then((response)=>{
+          console.log("response getPIckup", response)
+          if (response.success == true) {
+            setDataPickup(response.data.data)
+            console.log("response getPIckup", response.data.data)
+    
+          }else if(response.message == "Unauthenticated."){
+            goLogout()
+          }
+    
+          })
+      }
+
+
+    const  renderItem = ({ item, index}) =>{
+      console.log("data",item)
+        return(
+          <TouchableOpacity
+          onPress={() => navigation.navigate("DetailOrder",{
+            id_pickup: item.id
+          })}
           style={{
             flexDirection: "row",
-            justifyContent: "center",
             alignItems: "center",
             marginVertical: verticalScale(10),
+            marginTop: verticalScale(20),
+            borderBottomColor: "#DCDCDC",
+            borderBottomWidth: 0.7,
+            paddingBottom: verticalScale(10)
           }}
         >
-          <TouchableOpacity
-            style={styles.icon_left_arrow}
-            onPress={() => this.props.navigation.goBack()}
-          >
-            <Image
-              style={styles.icon_left_arrow}
-              source={require("../../../assets/image/left_arrow_black.png")}
-            ></Image>
-          </TouchableOpacity>
-
-          <Text style={styles.text_header}>0930.15032021</Text>
-        </View>
-
-        <View style={styles.container}>
-          <View style={styles.content}>
-            <View
-              style={{
-                flexDirection: "row",
-                borderRadius: moderateScale(12),
-                backgroundColor: "#FFFFFF",
-                alignItems: "center",
-                paddingHorizontal: moderateScale(5),
-              }}
-            >
-              <Image
-                style={{ width: moderateScale(25), height: moderateScale(25) }}
-                source={require("../../../assets/image/ic_search.png")}
-              ></Image>
-
-              <TextInput placeholder="Cari Order"></TextInput>
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                borderRadius: moderateScale(12),
-                backgroundColor: "#FFFFFF",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingHorizontal: moderateScale(5),
-                paddingVertical: verticalScale(8),
-                marginTop: verticalScale(16),
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginVertical: verticalScale(16),
-                }}
-              >
-                <Image
-                  style={{
-                    width: moderateScale(30),
-                    height: moderateScale(30),
-                  }}
-                  source={require("../../../assets/image/ic_box_red.png")}
-                ></Image>
-
-                <View style={{ marginHorizontal: moderateScale(10) }}>
-                  <Text style={styles.text_10}>Total Order</Text>
-                  <Text style={styles.text_18_bold}>12</Text>
-                </View>
-              </View>
-
-              <View
-                style={{
-                  width: 1,
-                  backgroundColor: "#E2E2E2",
-                  height: "80%",
-                  marginHorizontal: moderateScale(3),
-                }}
-              ></View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginVertical: verticalScale(16),
-                }}
-              >
-                <Image
-                  style={{
-                    width: moderateScale(30),
-                    height: moderateScale(30),
-                  }}
-                  source={require("../../../assets/image/ic_volume.png")}
-                ></Image>
-
-                <View style={{ marginHorizontal: moderateScale(10) }}>
-                  <Text style={styles.text_10}>Volume (M3)</Text>
-                  <Text style={styles.text_18_bold}>96,3</Text>
-                </View>
-              </View>
-
-              <View
-                style={{
-                  width: 1,
-                  backgroundColor: "#E2E2E2",
-                  height: "80%",
-                  marginHorizontal: moderateScale(3),
-                }}
-              ></View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginVertical: verticalScale(16),
-                }}
-              >
-                <Image
-                  style={{
-                    width: moderateScale(30),
-                    height: moderateScale(30),
-                  }}
-                  source={require("../../../assets/image/ic_berat.png")}
-                ></Image>
-
-                <View style={{ marginHorizontal: moderateScale(10) }}>
-                  <Text style={styles.text_10}>Berat (Kg)</Text>
-                  <Text style={styles.text_18_bold}>782,3</Text>
-                </View>
-              </View>
-            </View>
-
-            <FlatList
-              data={DATA}
-              renderItem={this.renderItem()}
-              keyExtractor={(item) => item.id}
-              extraData={this.state.selectedId}
-            />
-
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate("DetailOrder")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: verticalScale(10),
-                marginTop: verticalScale(20),
-              }}
-            >
-              <View>
-                <Text>34000912</Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Suryadi 081234567890
-                </Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Perum Suryadadi B13, Jl. Petogogan IX ...{" "}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
-                }}
-              ></View>
-              <Image
-                style={styles.icon_check}
-                source={require("../../../assets/image/ic_check.png")}
-              ></Image>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate("DetailOrder")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: verticalScale(10),
-              }}
-            >
-              <View>
-                <Text>34000913</Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Bagoes 081134567890{" "}
-                </Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Perum Suryadadi B13, Jl. Petogogan IX ...{" "}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
-                }}
-              ></View>
-              <Image
-                style={styles.icon_check}
-                source={require("../../../assets/image/ic_check.png")}
-              ></Image>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate("DetailOrder")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: verticalScale(10),
-              }}
-            >
-              <View>
-                <Text>34000913</Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Bagoes 081134567890{" "}
-                </Text>
-                <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-                  Perum Suryadadi B13, Jl. Petogogan IX ...{" "}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
-                }}
-              ></View>
-              <Image
-                style={styles.icon_check}
-                source={require("../../../assets/image/ic_check.png")}
-              ></Image>
-            </TouchableOpacity>
+          <View>
+            <Text>{item.id}</Text>
+            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
+              {item.name}{" "} {item.phone}
+            </Text>
+            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
+            {item.sender.street}
+            </Text>
           </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-}
 
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              alignItems: "flex-end",
+            }}
+          ></View>
+          <Image
+            style={styles.icon_check}
+            source={require("../../../assets/image/ic_check.png")}
+          ></Image>
+        </TouchableOpacity>
+
+        )
+      }
+
+      return (
+        <SafeAreaView style={{ flex: 1 }}>
+          <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
+          <Header></Header>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              marginVertical: verticalScale(10),
+            }}
+          >
+            <TouchableOpacity
+              style={styles.icon_left_arrow}
+              onPress={() => navigation.goBack()}
+            >
+              <Image
+                style={{height: moderateScale(12),width: moderateScale(20),resizeMode:"stretch"}}
+                source={require("../../../assets/image/left_arrow_black.png")}
+              ></Image>
+            </TouchableOpacity>
+  
+            <Text style={styles.text_header}>{data_pickup_plan.id}</Text>
+          </View>
+  
+          <View style={styles.container}>
+            <View style={styles.content}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  borderRadius: moderateScale(12),
+                  backgroundColor: "#FFFFFF",
+                  alignItems: "center",
+                  paddingHorizontal: moderateScale(5),
+                }}
+              >
+                <Image
+                  style={{ width: moderateScale(25), height: moderateScale(25) }}
+                  source={require("../../../assets/image/ic_search.png")}
+                ></Image>
+  
+                <TextInput placeholder="Cari Order"></TextInput>
+              </View>
+  
+              <View
+                style={{
+                  flexDirection: "row",
+                  borderRadius: moderateScale(12),
+                  backgroundColor: "#FFFFFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: moderateScale(5),
+                  paddingVertical: verticalScale(8),
+                  marginTop: verticalScale(16),
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: verticalScale(16),
+                  }}
+                >
+                  <Image
+                    style={{
+                      width: moderateScale(30),
+                      height: moderateScale(30),
+                    }}
+                    source={require("../../../assets/image/ic_box_red.png")}
+                  ></Image>
+  
+                  <View style={{ marginHorizontal: moderateScale(10) }}>
+                    <Text style={styles.text_10}>Total Order</Text>
+                    <Text style={styles.text_18_bold}>{data_pickup.length}</Text>
+                  </View>
+                </View>
+  
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: "#E2E2E2",
+                    height: "80%",
+                    marginHorizontal: moderateScale(3),
+                  }}
+                ></View>
+  
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: verticalScale(16),
+                  }}
+                >
+                  <Image
+                    style={{
+                      width: moderateScale(30),
+                      height: moderateScale(30),
+                    }}
+                    source={require("../../../assets/image/ic_volume.png")}
+                  ></Image>
+  
+                  <View style={{ marginHorizontal: moderateScale(10) }}>
+                    <Text style={styles.text_10}>Volume (M3)</Text>
+                    <Text style={styles.text_18_bold}>{volume}</Text>
+                  </View>
+                </View>
+  
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: "#E2E2E2",
+                    height: "80%",
+                    marginHorizontal: moderateScale(3),
+                  }}
+                ></View>
+  
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: verticalScale(16),
+                  }}
+                >
+                  <Image
+                    style={{
+                      width: moderateScale(30),
+                      height: moderateScale(30),
+                    }}
+                    source={require("../../../assets/image/ic_berat.png")}
+                  ></Image>
+  
+                  <View style={{ marginHorizontal: moderateScale(10) }}>
+                    <Text style={styles.text_10}>Berat (Kg)</Text>
+                    <Text style={styles.text_18_bold}>{kg}</Text>
+                  </View>
+                </View>
+              </View>
+  
+              <FlatList
+                  data={data_pickup}
+                  renderItem={renderItem}
+                  keyExtractor={(item, index) => index.toString()}
+                  extraData={selectedId}
+                />
+             
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    
+    
+
+}
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
@@ -330,10 +337,10 @@ const styles = StyleSheet.create({
   },
   icon_left_arrow: {
     position: "absolute",
-    left: moderateScale(10),
-    width: moderateScale(20),
-    height: moderateScale(12),
-    resizeMode: "stretch",
+    left: moderateScale(20),
+    width: moderateScale(30),
+    height: moderateScale(30),
+    justifyContent:'center',
   },
   text_header: {
     fontFamily: "Montserrat-Bold",
@@ -484,4 +491,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ListOrder;
+
+  
+//   render() {
+  
+//   }
+// }
+
+
+

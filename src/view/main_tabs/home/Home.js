@@ -6,6 +6,7 @@ import { saveData } from "../../../util/AsyncStorage";
 import { BASE_URL,PICKUP_DRIVER,getData,postData } from "../../../network/ApiService";
 import { getValue } from "../../../util/AsyncStorage";
 import { LOGIN_STATUS,TOKEN } from "../../../util/StringConstans";
+import  moment  from "moment";
 import { Loading } from "../../../util/Loading";
 import {
 
@@ -46,25 +47,27 @@ export default function Home({ navigation }) {
     const getPickupPlan = async() =>{
         var token =  await getValue(TOKEN);
         console.log("response token", token)
+        var date = moment("2021-03-03").format('YYYY-MM-DD');
         var parans= {
           "perPage": 10,
-          "page": 1,
           "id": "",
-          "name": "",
-          "city": "",
-          "district": "",
-          "village": "",
-          "street": "",
-          "picktime": "",
-          "sort": "",
-          "pickupPlanId": 1
+          "page": 1,
+          "startDate": "",
+          "endDate": "",
+          "licenseNumber": "",
+          "status": "",
+          "vehicleType": "",
+          "sort": {
+              "field": "",
+              "order": ""
+          }
       }
         await postData(BASE_URL+PICKUP_DRIVER,parans,token).then((response)=>{
-          console.log("response getPIckup", response)
+          console.log("response getPIckup home", response)
           if (response.success == true) {
             setDataPickup(response.data.data)
-          console.log("response getPIckup", response.data.data)
-    
+            console.log("response getPIckup home", response.data.data)
+
           }else if(response.message == "Unauthenticated."){
             goLogout()
           }
@@ -77,7 +80,7 @@ export default function Home({ navigation }) {
       console.log("data",item)
         return(
                 <TouchableOpacity
-                    onPress={()=> navigation.navigate("ListOrder",{data_pickup: data})}
+                    onPress={()=> navigation.navigate("ListOrder",{data_pickup_plan: item})}
                       style={{
                         flexDirection: "row",
                         height: verticalScale(90),
@@ -106,7 +109,7 @@ export default function Home({ navigation }) {
                       <View>
                         <Text style={styles.text_14_bold}>{item.id}</Text>
                         <Text style={[styles.text_11, { color: "#262F56" }]}>
-                          Total 12 order pelanggan
+                          Total {item.total_pickup_order} order pelanggan
                         </Text>
                       </View>
                       <View
@@ -122,9 +125,9 @@ export default function Home({ navigation }) {
                       >
                         <Text style={styles.text_12}>
                           <Text style={[styles.text_12_bold, { color: "#A80002" }]}>
-                            3
+                            1
                           </Text>
-                          / 12
+                          / {item.total_pickup_order}
                         </Text>
                       </View>
                       <Image
