@@ -26,7 +26,7 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
-  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 
@@ -190,30 +190,29 @@ class Profil extends Component {
   renderModalProfil() {
     return (
       <Modal
-        animationType="fade"
-        transparent={true}
-        visible={this.state.modalVisibleProfile}
-        // onRequestClose={() => {
-        //   Alert.alert("Modal has been closed.");
-        // }}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(52, 52, 52, 0.3)",
-            alignItems: "flex-end",
-          }}
-        >
+      animationType="fade"
+      transparent={true}
+      visible={this.state.modalVisibleProfile}>
+      <TouchableOpacity
+        onPress={() => {
+          this.setState({modalVisibleProfile: false});
+        }}
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(52, 52, 52, 0.3)',
+          alignItems: 'flex-end',
+        }}>
+        <TouchableWithoutFeedback>
           <View
             style={{
               width: moderateScale(130),
-              height: moderateScale(150),
+              height: moderateScale(100),
               marginHorizontal: moderateScale(20),
               marginVertical: moderateScale(70),
-              backgroundColor: "white",
+              backgroundColor: 'white',
               borderRadius: moderateScale(8),
               padding: moderateScale(10),
-              shadowColor: "#000",
+              shadowColor: '#000',
               shadowOffset: {
                 width: 0,
                 height: 2,
@@ -221,32 +220,20 @@ class Profil extends Component {
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
               elevation: 5,
-            }}
-          >
-            <TouchableOpacity style={{ marginVertical: verticalScale(5) }}>
+            }}>
+            <TouchableOpacity style={{marginVertical: verticalScale(5)}}>
               <Text>Tentang Aplikasi</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => this.showConfirmLogout()}
-              style={{ marginVertical: verticalScale(5) }}
-            >
+              style={{marginVertical: verticalScale(5)}}>
               <Text>Keluar</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                position: "absolute",
-                bottom: 15,
-                left: moderateScale(10),
-              }}
-              onPress={() => {
-                this.setState({ modalVisibleProfile: false });
-              }}
-            >
-              <Text style={styles.textStyle}>Kembali</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </TouchableWithoutFeedback>
+      </TouchableOpacity>
+    </Modal>
+ 
     );
   }
 
@@ -414,7 +401,7 @@ class Profil extends Component {
         <Header></Header>
         <View style={styles.header}>
           <TouchableOpacity
-            style={styles.icon_left_arrow}
+            style={styles.view_icon_left_arrow}
             onPress={() => this.props.navigation.goBack()}
           >
             <Image
@@ -430,6 +417,7 @@ class Profil extends Component {
             style={{
               position: "absolute",
               right: moderateScale(20),
+              padding: moderateScale(8)
             }}
           >
             <View
@@ -557,6 +545,13 @@ const styles = StyleSheet.create({
     width: moderateScale(20),
     height: moderateScale(12),
     resizeMode: "stretch",
+  },
+  view_icon_left_arrow: {
+    position: "absolute",
+    left: moderateScale(10),
+    width: moderateScale(30),
+    height: moderateScale(30),
+    top: verticalScale(16)
   },
   profil_picture: {
     width: "100%",

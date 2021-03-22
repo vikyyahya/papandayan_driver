@@ -6,7 +6,7 @@ import { getValue } from "../../../util/AsyncStorage";
 import  moment  from "moment";
 import { TOKEN } from "../../../util/StringConstans";
 import { Picker } from "@react-native-picker/picker";
-import { BASE_URL,DETAIL_PICKUP_DRIVER,SUBMIT_PICKUP_DRIVER,ALLUNIT,SERVICE,postData,getData} from "../../../network/ApiService";
+import { BASE_URL,DETAIL_PICKUP_DRIVER,SUBMIT_PICKUP_DRIVER,ALLUNIT,SERVICE,EDIT_ITEM_DRIVER,postData,getData} from "../../../network/ApiService";
 import BottomSheet from 'react-native-bottomsheet-reanimated';
 import {ModalWarning, ModalSuccess} from '../../../util/CustModal';
 import {Loading} from '../../../util/Loading';
@@ -29,21 +29,9 @@ import {
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
+const snapPoints = [0, height / 2, '70%', '100%'];
 
-const DATA = [
-  {
-    id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-    title: "First Item",
-  },
-  {
-    id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-    title: "Second Item",
-  },
-  {
-    id: "58694a0f-3da1-471f-bd96-145571e29d72",
-    title: "Third Item",
-  },
-];
+
 
 export default function DetailOrder ({ navigation,route}) {
   const [reason, setReason] = useState("");
@@ -53,6 +41,7 @@ export default function DetailOrder ({ navigation,route}) {
   const [data_item, setDataItem] = useState([]);
   const [selectedId, setSeledtedId] = useState("");
   const [units, setUnits] = useState([]);
+  const [service, setService] = useState([]);
   const [dataItemsTemporary, setDataTemp] = useState({
     unit_id: '',
     unit_label: '',
@@ -64,19 +53,31 @@ export default function DetailOrder ({ navigation,route}) {
   });
   
   const [isModalSuccess, setIsModalSuccess] = useState(false);
+  const [isModalWarning, setIsModalWarning] = useState(false);
+  const [messageModalWarning, setMessageModalWarning] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
   const [driverPick, setDriverPIck] = useState(true);
 
+  const [index_selected, setIndexSelected] = useState("");
+  const [itemModal, setItemModal] = useState([]);
+  const [typeModal, setTypeModal] = useState("");
+  const [modalUnitVisible, setModalUnitVisible] = useState(false);
+
+
   const {id_pickup} = route.params;
+
+  const refBottomSheet = useRef(null);
+
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
       getPickupPlan()
       getAllUnit()
+      getAllServices()
 
     });
     return unsubscribe;
@@ -85,6 +86,7 @@ export default function DetailOrder ({ navigation,route}) {
   useEffect(()=>{
     getPickupPlan()
     getAllUnit()
+    getAllServices()
   },[]);
 
   const validationForm = ()=>{
@@ -92,6 +94,35 @@ export default function DetailOrder ({ navigation,route}) {
 
       return false ;
     }
+  }
+  const onSaveItem = async()=>{
+    var token =  await getValue(TOKEN);
+    refBottomSheet.current.snapTo(0)
+    setIsLoading(true)
+    var params = {
+      "unitId": dataItemsTemporary.unit_id,
+      "itemId": id_pickup,
+      "name": dataItemsTemporary.name,
+      "total": dataItemsTemporary.unit_total,
+      "count": dataItemsTemporary.unit_count,
+      "serviceId": dataItemsTemporary.service_id
+  }
+    await postData(BASE_URL + EDIT_ITEM_DRIVER,params,token).then((response)=>{
+      console.log("response  onSaveItem", response)
+      if(response.success == true){
+        setIsLoading(false)
+        // setIsModalSuccess(true)
+      }else{
+        setIsLoading(false)
+        setIsModalWarning(true)
+        setMessageModalWarning(response.message)
+      }
+
+    }).catch((error)=>{
+      console.log("response error", error)
+
+    })
+
   }
 
   const submitPickup = async () => {
@@ -105,7 +136,7 @@ export default function DetailOrder ({ navigation,route}) {
       sts = "updated"
     }
     var params = {
-      "status": sts,
+      "statusPick": sts,
       "notes": notes,
       "driverPick": true,
       "pickupId": id_pickup
@@ -119,12 +150,15 @@ export default function DetailOrder ({ navigation,route}) {
         setIsModalSuccess(true)
       }else{
         setIsLoading(false)
+        setIsModalWarning(true)
+        setMessageModalWarning(response.message)
+
       }
 
-    }).catch((error)=>[
+    }).catch((error)=>{
       console.log("response error", error)
 
-    ])
+    })
   }
 
   const getPickupPlan = async(id) =>{
@@ -170,7 +204,7 @@ export default function DetailOrder ({ navigation,route}) {
       console.log("response SERVICE", response)
       if (response.success == true) {
         let value = response.data;
-        setUnits(value)
+        setService(value)
         // this.setState({ picker: true });
       } else if (response.message == 'Unauthenticated.') {
         // this.props.navigation.replace("Login");
@@ -187,6 +221,84 @@ export default function DetailOrder ({ navigation,route}) {
   const onSuccess = ()=>{
     setIsModalSuccess(false)
   }
+
+  const onEdit = (index,data)=>{
+    refBottomSheet.current.snapTo(index)
+    console.log("data onEdit", data)
+    setDataTemp(
+      {
+        unit_id: "",
+        unit_label: "",
+        service_id: data.service_id,
+        service_label: data.service.name,
+        name: data.name,
+        unit_total: data.unit_total,
+        unit_count: data.unit_count,
+      }
+    )
+  }
+
+  // const onSaveItem = ()=>{
+  //   var token =  await getValue(TOKEN);
+  //   refBottomSheet.current.snapTo(0)
+  //   setIsLoading(true)
+
+  // }
+
+  const  selectUnits = (i) => {
+    setIndexSelected(i);
+    setItemModal(units)
+    setTypeModal("unit")
+    setModalUnitVisible(true);
+    
+  }
+
+  const selectService = (i) =>{
+    setIndexSelected(i);
+    setItemModal(service)
+    setTypeModal("service")
+    setModalUnitVisible(true);
+  } 
+
+  const onSelectedUnit = (value)=>{
+    if(typeModal == "unit"){
+      var data = {...dataItemsTemporary}
+      data = {...data,unit_label: value.name}
+      data = {...data, unit_id: value.id};
+      setDataTemp(data)
+      setModalUnitVisible(false)
+    }else{
+      var data = {...dataItemsTemporary}
+      data = {...data,service_label: value.name}
+      data = {...data, service_id: value.id};
+      setDataTemp(data)
+      setModalUnitVisible(false)
+    }
+  }
+
+  const onNameItemChange = (value) =>{
+    var data = {...dataItemsTemporary}
+    data = {...data,name: value}
+    setDataTemp(data)
+  }
+
+  const onTotalItemChange = (value) =>{
+    var data = {...dataItemsTemporary}
+    data = {...data,unit_count: value}
+    setDataTemp(data)
+  }
+
+  const onTotalUnitChange = (value) =>{
+    var data = {...dataItemsTemporary}
+    data = {...data,unit_total: value}
+    setDataTemp(data)
+  }
+
+  const onOkEdit = ()=>{
+    setIsModalWarning(false)
+  }
+
+  
 
   const renderModal =()=> {
     return (
@@ -253,6 +365,72 @@ export default function DetailOrder ({ navigation,route}) {
     );
   }
 
+  const renderModalUnit = (type) => {
+    if (typeModal === 'unit') {
+      return (
+        <View style={styles.centeredView}>
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalUnitVisible}
+            >
+            <View style={styles.centeredView}>
+              <View style={styles.modal_dropdown}>
+                <Text style={styles.modalText}>Pilih Satuan</Text>
+                {itemModal.map((data, key) => {
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => onSelectedUnit(data)}>
+                      <Text
+                        style={[
+                          styles.text_14,
+                          {color: '#262F56', margin: moderateScale(5)},
+                        ]}>
+                        {data.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </Modal>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.centeredView}>
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalUnitVisible}
+            >
+            <View style={styles.centeredView}>
+              <View style={styles.modal_dropdown}>
+                <Text style={styles.modalText}>Pilih Service</Text>
+                {itemModal.map((data, key) => {
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => onSelectedUnit(data)}>
+                      <Text
+                        style={[
+                          styles.text_title_14,
+                          {color: '#262F56', margin: moderateScale(5)},
+                        ]}>
+                        {data.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </Modal>
+        </View>
+      );
+    }
+  }
+
 
 
   const  renderItem = ({ item, index}) =>{
@@ -264,11 +442,13 @@ export default function DetailOrder ({ navigation,route}) {
             <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_count}</Text>
             <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_total}</Text>
             <Text style={[styles.text_10, { flex: 0.8 }]}>{item.service != null ? item.service.name : "-"}</Text>
-            <TouchableOpacity>
-            <Image
-            style={{width: moderateScale(15),height:moderateScale(15)}}
-            source={require("../../../assets/image/ic_edit.png")}
-            ></Image>
+            <TouchableOpacity
+            onPress = {() => onEdit(2,item)}
+            >
+              <Image
+              style={{width: moderateScale(15),height:moderateScale(15)}}
+              source={require("../../../assets/image/ic_edit.png")}
+              ></Image>
             </TouchableOpacity>
           </View>
           <View style={styles.line}></View>
@@ -281,7 +461,7 @@ export default function DetailOrder ({ navigation,route}) {
       <BottomSheet
       bottomSheerColor="#F1F1F1"
       // backDropColor="red"
-      ref={'BottomSheet'}
+      ref={refBottomSheet}
       initialPosition={'0%'}
       snapPoints={snapPoints}
       isBackDrop={true}
@@ -303,7 +483,7 @@ export default function DetailOrder ({ navigation,route}) {
             }}></View>
 
           <Text style={[styles.text_16, {marginTop: verticalScale(8)}]}>
-            Masukkan Data Barang
+            Ubah Data Barang
           </Text>
         </View>
       }
@@ -326,8 +506,8 @@ export default function DetailOrder ({ navigation,route}) {
               marginTop: verticalScale(5),
             }}
             placeholder="Nama Barang"
-            onChangeText={(phone) =>
-              onNameItemChange(phone)
+            onChangeText={(v) =>
+              onNameItemChange(v)
             }></TextInput>
           <Text style={styles.text_10}>Jumlah Barang</Text>
           <TextInput
@@ -414,6 +594,7 @@ export default function DetailOrder ({ navigation,route}) {
                 borderRadius: moderateScale(12),
                 fontSize: 12,
                 marginTop: verticalScale(5),
+                color: "#000000"
               }}
               placeholder="Request Layanan"
               // onChangeText={(phone) => this.setState({ phone })}
@@ -440,7 +621,7 @@ export default function DetailOrder ({ navigation,route}) {
               alignItems: 'center',
             }}
             onPress={() => onSaveItem()}>
-            <Text style={styles.text_title_14}>Simpan</Text>
+            <Text style={[styles.text_14,{color: "#FFFFFF"}]}>Simpan</Text>
           </TouchableOpacity>
         </View>
       }
@@ -461,7 +642,7 @@ export default function DetailOrder ({ navigation,route}) {
         }}
       >
         <TouchableOpacity
-          style={styles.icon_left_arrow}
+          style={styles.view_icon_left_arrow}
           onPress={() => navigation.goBack()}
         >
           <Image
@@ -474,6 +655,7 @@ export default function DetailOrder ({ navigation,route}) {
       </View>
 
       <View style={styles.container}>
+      {renderModalUnit()}
         <View
           style={{
             width: width - moderateScale(40),
@@ -584,7 +766,6 @@ export default function DetailOrder ({ navigation,route}) {
             </Picker>
         </View>
       </View>
-      {renderModal()}
       <View
         style={{
           flexDirection: "row",
@@ -601,12 +782,21 @@ export default function DetailOrder ({ navigation,route}) {
           <Text style={[styles.text_14, { color: "#FFFFFF" }]}>PICK UP</Text>
         </TouchableOpacity>
       </View>
-      <Loading visible={isLoading}></Loading>
+   
+      {renderModal()}
+      {renderBottomSheet()}
+       <Loading visible={isLoading}></Loading>
       <ModalSuccess
           visible={isModalSuccess}
           message={'Submit Pick Up Berhasil'}
           onOk={() => onSuccess()}>   
       </ModalSuccess>
+
+      <ModalWarning
+      visible={isModalWarning}
+      message={messageModalWarning}
+      onOk={() => onOkEdit()}
+      ></ModalWarning>
 
     </SafeAreaView>
   );
@@ -633,6 +823,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(38, 47, 86, 0.9)",
+  },
+  modal_dropdown: {
+    width: moderateScale(200),
+    height: moderateScale(180),
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 10,
+    fontSize: 20,
+    textAlign: 'center',
+    fontFamily: 'Montserrat-Bold',
   },
   modalView: {
     width: width - moderateScale(64),
@@ -671,6 +883,14 @@ const styles = StyleSheet.create({
     width: moderateScale(20),
     height: moderateScale(12),
     resizeMode: "stretch",
+  },
+  view_icon_left_arrow: {
+    position: "absolute",
+    left: moderateScale(10),
+    width: moderateScale(30),
+    height: moderateScale(30),
+    justifyContent:'center',
+
   },
   text_header: {
     fontFamily: "Montserrat-Bold",
@@ -768,6 +988,7 @@ const styles = StyleSheet.create({
   },
   text_14: {
     fontFamily: "Montserrat-Regular",
+    fontSize: 12
   },
   text_18: {
     textAlign: "left",
@@ -831,72 +1052,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// renderModal(type) {
-//   if (this.state.typeModal === 'unit') {
-//     return (
-//       <View style={styles.centeredView}>
-//         <Modal
-//           animationType="fade"
-//           transparent={true}
-//           visible={this.state.modalVisible}
-//           onRequestClose={() => {
-//             Alert.alert('Modal has been closed.');
-//           }}>
-//           <View style={styles.centeredView}>
-//             <View style={styles.modal_dropdown}>
-//               <Text style={styles.modalText}>Pilih Satuan</Text>
-//               {this.state.itemModal.map((data, key) => {
-//                 return (
-//                   <TouchableOpacity
-//                     key={key}
-//                     onPress={() => this.onSelectedUnit(data)}>
-//                     <Text
-//                       style={[
-//                         styles.text_title_14,
-//                         {color: '#262F56', margin: moderateScale(5)},
-//                       ]}>
-//                       {data.name}
-//                     </Text>
-//                   </TouchableOpacity>
-//                 );
-//               })}
-//             </View>
-//           </View>
-//         </Modal>
-//       </View>
-//     );
-//   } else {
-//     return (
-//       <View style={styles.centeredView}>
-//         <Modal
-//           animationType="fade"
-//           transparent={true}
-//           visible={this.state.modalVisible}
-//           onRequestClose={() => {
-//             Alert.alert('Modal has been closed.');
-//           }}>
-//           <View style={styles.centeredView}>
-//             <View style={styles.modal_dropdown}>
-//               <Text style={styles.modalText}>Pilih Service</Text>
-//               {this.state.itemModal.map((data, key) => {
-//                 return (
-//                   <TouchableOpacity
-//                     key={key}
-//                     onPress={() => this.onSelectedUnit(data)}>
-//                     <Text
-//                       style={[
-//                         styles.text_title_14,
-//                         {color: '#262F56', margin: moderateScale(5)},
-//                       ]}>
-//                       {data.name}
-//                     </Text>
-//                   </TouchableOpacity>
-//                 );
-//               })}
-//             </View>
-//           </View>
-//         </Modal>
-//       </View>
-//     );
-//   }
-// }

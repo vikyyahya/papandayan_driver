@@ -3,7 +3,7 @@ import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
-import { BASE_URL,PICKUP_DRIVER,getData,postData } from "../../../network/ApiService";
+import { BASE_URL,PICKUP_DRIVER,PROFILE,getData,postData } from "../../../network/ApiService";
 import { getValue } from "../../../util/AsyncStorage";
 import { LOGIN_STATUS,TOKEN } from "../../../util/StringConstans";
 import  moment  from "moment";
@@ -29,11 +29,13 @@ const { width, height } = Dimensions.get("window");
 export default function Home({ navigation }) {
     const [data_pickup, setDataPickup] = useState([]);
     const [selectedId, setSelectedId] = useState(0);
+    const [name, setName] = useState("");
 
     useEffect(() => {
         const unsubscribe = navigation.addListener("focus", () => {
           // getUrlVoice();
          getPickupPlan()
+         getDataProfile()
         });
         return unsubscribe;
       }, []);
@@ -43,6 +45,24 @@ export default function Home({ navigation }) {
         saveData(LOGIN_STATUS, "0");
         navigation.replace("Login");
       }
+
+    const getDataProfile = async () => {
+        let token = await getValue(TOKEN);
+        await getData(BASE_URL + PROFILE, token).then((response) => {
+          console.log("getDataProfile ", response);
+          if (response.success == true) {
+            let value = response.data;
+            setName(response.data.username)
+          } else if (response.code == 4001) {
+
+          } else if (response.message == "Unauthenticated.") {
+            saveData(TOKEN, "");
+            saveData(LOGIN_STATUS, "0");
+            navigation.replace("Login");
+          }
+        });
+      }
+    
 
     const getPickupPlan = async() =>{
         var token =  await getValue(TOKEN);
@@ -74,6 +94,19 @@ export default function Home({ navigation }) {
     
           })
       }
+
+
+    const renderListEmpty = ()=>{
+      return(
+        <View style={{justifyContent:"center",alignItems:"center",flex:1, height: verticalScale(300)}}>
+          <Image
+          style={{width:moderateScale(80),height: moderateScale(80)}}
+          source={require("../../../assets/image/empty.png")}
+          ></Image>
+          <Text>Pickup Plane Kosong</Text>
+        </View>
+      )
+    }
 
 
     const  renderItem = ({ item, index}) =>{
@@ -156,10 +189,10 @@ export default function Home({ navigation }) {
             <View style={styles.content}>
               <Text style={[styles.text_16]}>
                 Selamat pagi
-                <Text style={styles.text_16_bold}> Rahmadi</Text>{" "}
+                <Text style={styles.text_16_bold}>{" "}{name}</Text>
               </Text>
               <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>
-                Hari ini ada 3 Pickup Plan untuk kamu
+                Hari ini ada {data_pickup.length} Pickup Plan untuk kamu
               </Text>
 
               <View>
@@ -169,6 +202,7 @@ export default function Home({ navigation }) {
                     renderItem={renderItem}
                     keyExtractor={(item, index) => index.toString()}
                     extraData={selectedId}
+                    ListEmptyComponent={renderListEmpty}
                 />
             </View>
             </View>

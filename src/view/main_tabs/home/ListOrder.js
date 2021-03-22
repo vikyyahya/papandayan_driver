@@ -45,8 +45,9 @@ export default function ListOrder({ navigation,route }) {
     const [selectedId, setSelectedId] = useState(0);
     const [kg, setKg] = useState(0);
     const [volume, setVolume] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
     const { data_pickup_plan } = route.params;
-    console.log("data_pickup_plan", data_pickup_plan)
+    console.log("data_pickup_plan param", data_pickup_plan)
 
 
     useEffect(() => {
@@ -74,9 +75,10 @@ export default function ListOrder({ navigation,route }) {
       var parans= {
         pickupPlanId : data_pickup_plan.id
       }
-
+      setIsLoading(true)
       await postData(BASE_URL+TOTAL_VOL_DRIVER,parans,token).then((response)=>{
         console.log("response TOTAL_VOL_DRIVER", response)
+        setIsLoading(false)
         if(response.success == true){
           setKg(response.data.kilo)
           setVolume(response.data.volume)
@@ -105,12 +107,26 @@ export default function ListOrder({ navigation,route }) {
           "street": "",
           "picktime": "",
           "sort": "",
-          "pickupPlanId": 1
+          "pickupPlanId": data_pickup_plan.id
         }
+        setIsLoading(true)
         await postData(BASE_URL+GET_BY_PICKUP_PLANE,parans,token).then((response)=>{
           console.log("response getPIckup", response)
+          setIsLoading(false)
           if (response.success == true) {
             setDataPickup(response.data.data)
+            // var data_pick = []
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // data_pick.push(response.data.data[0])
+            // setDataPickup(data_pick)
             console.log("response getPIckup", response.data.data)
     
           }else if(response.message == "Unauthenticated."){
@@ -121,8 +137,42 @@ export default function ListOrder({ navigation,route }) {
       }
 
 
-    const  renderItem = ({ item, index}) =>{
-      console.log("data",item)
+    const renderIconStatus = (data)  => {
+      if (data.status_pick == "success"){
+        return (
+          <Image
+          style={styles.icon_check}
+          source={ require("../../../assets/image/ic_check.png")}
+          ></Image>
+        )
+      }else if (data.status_pick == "failed"){
+        return (
+          <Image
+          style={styles.icon_check}
+          source={ require("../../../assets/image/ic_cross.png")}
+          ></Image>
+        )
+      }else if (data.status_pick == "repickup"){
+        return (
+          <Image
+          style={styles.icon_check}
+          source={ require("../../../assets/image/ic_reload.png")}
+          ></Image>
+        )
+      }
+      
+      else{
+        return (
+          <Image
+          style={styles.icon_check}
+          source={ require("../../../assets/image/ic_check_yellow.png")}
+          ></Image>
+        )
+      }
+    }
+
+
+    const  renderItem = ({ item, index}) => {
         return(
           <TouchableOpacity
           onPress={() => navigation.navigate("DetailOrder",{
@@ -132,7 +182,7 @@ export default function ListOrder({ navigation,route }) {
             flexDirection: "row",
             alignItems: "center",
             marginVertical: verticalScale(10),
-            marginTop: verticalScale(20),
+            marginTop: verticalScale(5),
             borderBottomColor: "#DCDCDC",
             borderBottomWidth: 0.7,
             paddingBottom: verticalScale(10)
@@ -140,10 +190,10 @@ export default function ListOrder({ navigation,route }) {
         >
           <View>
             <Text>{item.id}</Text>
-            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
+            <Text style={[styles.text_title_12, { color: "#4A4A4A"}]}>
               {item.name}{" "} {item.phone}
             </Text>
-            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
+            <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
             {item.sender.street}
             </Text>
           </View>
@@ -155,10 +205,17 @@ export default function ListOrder({ navigation,route }) {
               alignItems: "flex-end",
             }}
           ></View>
-          <Image
+          {item.proof_of_pickup != null ? (
+
+           renderIconStatus(item.proof_of_pickup)
+
+          ):(
+            <Image
             style={styles.icon_check}
-            source={require("../../../assets/image/ic_check.png")}
-          ></Image>
+            source={ require("../../../assets/image/ic_search_grey.png")}
+            ></Image>
+          )}
+          
         </TouchableOpacity>
 
         )
@@ -218,6 +275,7 @@ export default function ListOrder({ navigation,route }) {
                   paddingHorizontal: moderateScale(5),
                   paddingVertical: verticalScale(8),
                   marginTop: verticalScale(16),
+                  marginBottom: verticalScale(20),
                 }}
               >
                 <View
@@ -300,17 +358,23 @@ export default function ListOrder({ navigation,route }) {
                     <Text style={styles.text_18_bold}>{kg}</Text>
                   </View>
                 </View>
+             
               </View>
   
-              <FlatList
-                  data={data_pickup}
-                  renderItem={renderItem}
-                  keyExtractor={(item, index) => index.toString()}
-                  extraData={selectedId}
-                />
+              {/* <View style={{backgroundColor:"grey", width : width, flex:1}}> */}
+                <FlatList
+                    data={data_pickup}
+                    renderItem={renderItem}
+                    keyExtractor={(item, index) => index.toString()}
+                    extraData={selectedId}
+                  />
+              {/* </View> */}
+             
              
             </View>
           </View>
+          <Loading visible={isLoading}></Loading>
+          
         </SafeAreaView>
       );
     
@@ -319,10 +383,12 @@ export default function ListOrder({ navigation,route }) {
 }
 const styles = StyleSheet.create({
   container: {
+    flex:1,
     alignItems: "center",
     backgroundColor: "#F1F1F1",
   },
   content: {
+    flex:1,
     width: width,
     paddingRight: moderateScale(20),
     paddingLeft: moderateScale(20),

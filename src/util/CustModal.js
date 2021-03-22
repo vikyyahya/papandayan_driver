@@ -18,9 +18,9 @@ export const ModalWarning = ({ visible, message, onOk }) => {
         animationType="fade"
         transparent={true}
         visible={visible}
-        onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
-        }}
+        // onRequestClose={() => {
+        //   Alert.alert("Modal has been closed.");
+        // }}
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>

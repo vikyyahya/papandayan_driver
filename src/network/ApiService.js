@@ -5,6 +5,7 @@ export const GET_BY_PICKUP_PLANE = "api/driver/pickup/get-by-pickup-plan";
 export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
 export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
+export const EDIT_ITEM_DRIVER = "api/driver/item/update";
 
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";
@@ -55,7 +56,7 @@ export const putData = async (url, data, token) => {
     let json = await response.json();
     return json;
   } catch (error) {
-    console.error("error postData", error);
+    console.error("error puttData", error);
   }
 };
 
@@ -73,7 +74,7 @@ export const getData = async (url, token) => {
     let json = await response.json();
     return json;
   } catch (error) {
-    console.error("error postData", error);
+    console.error("error gettData", error);
   }
 };
 
@@ -91,6 +92,6 @@ export const deleteData = async (url, token) => {
     let json = await response.json();
     return json;
   } catch (error) {
-    console.error("error postData", error);
+    console.error("error deleteData", error);
   }
 };
