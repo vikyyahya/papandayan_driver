@@ -24,17 +24,6 @@ import Profile from "../view/main_tabs/profile";
 import EditProfile from "../view/main_tabs/profile/EditProfile";
 import DropOff from "../view/drop_off";
 import PickUp from "../view/pick_up";
-import ReturnAddress from "../view/pick_up/ReturnAddress";
-import FormReturnAddress from "../view/pick_up/FormReturnAddress";
-import ReceiverAddress from "../view/pick_up/ReceiverAddress";
-import FormReceiverAddress from "../view/pick_up/FormReceiverAddress";
-import EditFormSenderAddress from "../view/pick_up/EditFormSenderAddress";
-import EditFormReceiverAddress from "../view/pick_up/EditFormReceiverAddress";
-import EditFormCollectorAddress from "../view/pick_up/EditFormCollectorAddress";
-import CollectorAddress from "../view/pick_up/CollectorAddress";
-import PickupSuccess from "../view/pick_up/PickupSuccess";
-
-import FormCollectorAddress from "../view/pick_up/FormCollectorAddress";
 import { View, Image } from "react-native";
 import { moderateScale, verticalScale } from "../util/ModerateScale";
 
@@ -103,14 +92,7 @@ const AppNavigation = () => {
           name="DropOff"
           component={DropOff}
         />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="PickUp"
-          component={PickUp}
-        />
+
         <Stack.Screen
           options={{
             headerShown: false,
@@ -119,86 +101,7 @@ const AppNavigation = () => {
           name="EditProfile"
           component={EditProfile}
         />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="ReturnAddress"
-          component={ReturnAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="FormReturnAddress"
-          component={FormReturnAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="EditFormSenderAddress"
-          component={EditFormSenderAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="EditFormReceiverAddress"
-          component={EditFormReceiverAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="EditFormCollectorAddress"
-          component={EditFormCollectorAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="FormReceiverAddress"
-          component={FormReceiverAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="ReceiverAddress"
-          component={ReceiverAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="CollectorAddress"
-          component={CollectorAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="FormCollectorAddress"
-          component={FormCollectorAddress}
-        />
-        <Stack.Screen
-          options={{
-            headerShown: false,
-            animationEnabled: false,
-          }}
-          name="PickupSuccess"
-          component={PickupSuccess}
-        />
+
         <Stack.Screen
           options={{
             headerShown: false,
@@ -231,7 +134,6 @@ function MainTabs() {
         activeBackgroundColor: "#F1F1F1",
 
         style: {
-          paddingHorizontal: moderateScale(10),
           height: verticalScale(50),
           paddingBottom: 0,
           paddingTop: 0,

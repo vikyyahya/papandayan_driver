@@ -20,6 +20,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
 } from "react-native";
 
 class Login extends Component {
@@ -35,6 +36,7 @@ class Login extends Component {
       stay_login: false,
       isLoading: false,
       isForm: false,
+      modalVisible: false
     };
   }
   componentDidMount() {}
@@ -52,6 +54,7 @@ class Login extends Component {
 
   async goToHome() {
     this.setLoading(true);
+    await this.setState({isPassword: true, isUserId: true})
     var params = {
       userId: this.state.userId,
       password: this.state.password,
@@ -73,7 +76,11 @@ class Login extends Component {
         } else if (response.data == "4003") {
           this.setLoading(false);
           this.setState({ isUserId: false, message: response.message });
-        } else if (response.data == "4005") {
+        } else if (response.data == "4004") {
+          this.setLoading(false);
+          this.setState({ isUserId: false, message: response.message });
+        }
+        else if (response.data == "4005") {
           this.setLoading(false);
           this.setState({ isPassword: false, message: response.message });
         } else {
@@ -132,7 +139,8 @@ class Login extends Component {
           contentContainerStyle={{ flexGrow: 1 }}
         >
           <View style={styles.container}>
-            <Modals onModal={(ref) => (this.modal = ref)} />
+            {/* <Modals onModal={(ref) => (this.modal = ref)} ></Modals> */}
+            {this.renderModal()}
 
             <Image
               source={require("../../assets/image/logo_red.png")}

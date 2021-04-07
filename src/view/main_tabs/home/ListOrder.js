@@ -3,13 +3,18 @@ import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
-import { BASE_URL,GET_BY_PICKUP_PLANE,TOTAL_VOL_DRIVER,getData,postData } from "../../../network/ApiService";
+import {
+  BASE_URL,
+  GET_BY_PICKUP_PLANE,
+  TOTAL_VOL_DRIVER,
+  getData,
+  postData,
+} from "../../../network/ApiService";
 import { getValue } from "../../../util/AsyncStorage";
-import { LOGIN_STATUS,TOKEN } from "../../../util/StringConstans";
-import  moment  from "moment";
+import { LOGIN_STATUS, TOKEN } from "../../../util/StringConstans";
+import moment from "moment";
 import { Loading } from "../../../util/Loading";
 import {
-
   Text,
   View,
   StyleSheet,
@@ -22,6 +27,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
@@ -40,360 +46,400 @@ const DATA = [
   },
 ];
 
-export default function ListOrder({ navigation,route }) {
-    const [data_pickup, setDataPickup] = useState([]);
-    const [selectedId, setSelectedId] = useState(0);
-    const [kg, setKg] = useState(0);
-    const [volume, setVolume] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
-    const { data_pickup_plan } = route.params;
-    console.log("data_pickup_plan param", data_pickup_plan)
+export default function ListOrder({ navigation, route }) {
+  const [data_pickup, setDataPickup] = useState([]);
+  const [selectedId, setSelectedId] = useState(0);
+  const [kg, setKg] = useState(0);
+  const [volume, setVolume] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data_pickup_plan } = route.params;
+  const [isRefresh, setIsRefresh] = useState(false);
 
+  console.log("data_pickup_plan param", data_pickup_plan);
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener("focus", () => {
-          // getUrlVoice();
-         getPickupPlan()
-         getVolumeAndTotal()
-        });
-        return unsubscribe;
-    }, []);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      getPickupPlan();
+      getVolumeAndTotal();
+    });
+    return unsubscribe;
+  }, []);
 
-    useEffect(()=>{
-      getPickupPlan()
-      getVolumeAndTotal()
-    },[]);
+  useEffect(() => {
+    getPickupPlan();
+    getVolumeAndTotal();
+  }, []);
 
-    const goLogout = ()=> {
-        saveData(TOKEN, "");
-        saveData(LOGIN_STATUS, "0");
-        navigation.replace("Login");
-      }
+  const goLogout = () => {
+    saveData(TOKEN, "");
+    saveData(LOGIN_STATUS, "0");
+    navigation.replace("Login");
+  };
 
-    const getVolumeAndTotal = async ()=>{
-      var token =  await getValue(TOKEN);
-      var parans= {
-        pickupPlanId : data_pickup_plan.id
-      }
-      setIsLoading(true)
-      await postData(BASE_URL+TOTAL_VOL_DRIVER,parans,token).then((response)=>{
-        console.log("response TOTAL_VOL_DRIVER", response)
-        setIsLoading(false)
-        if(response.success == true){
-          setKg(response.data.kilo)
-          setVolume(response.data.volume)
-        }else{
-
+  const getVolumeAndTotal = async () => {
+    var token = await getValue(TOKEN);
+    var parans = {
+      pickupPlanId: data_pickup_plan.id,
+    };
+    setIsLoading(true);
+    await postData(BASE_URL + TOTAL_VOL_DRIVER, parans, token)
+      .then((response) => {
+        console.log("response TOTAL_VOL_DRIVER", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setKg(response.data.kilo);
+          setVolume(response.data.volume);
+        } else {
         }
-        
-      }).catch((error)=>{
-        console.log("error TOTAL_VOL_DRIVER", error)
+      })
+      .catch((error) => {
+        console.log("error TOTAL_VOL_DRIVER", error);
       });
+  };
 
-    }
-
-    const getPickupPlan = async() =>{
-        var token =  await getValue(TOKEN);
-        console.log("response token", token)
-        var date = moment("2021-03-03").format('YYYY-MM-DD');
-        var parans= {
-          "perPage": 10,
-          "page": 1,
-          "id": "",
-          "name": "",
-          "city": "",
-          "district": "",
-          "village": "",
-          "street": "",
-          "picktime": "",
-          "sort": "",
-          "pickupPlanId": data_pickup_plan.id
+  const getPickupPlan = async () => {
+    var token = await getValue(TOKEN);
+    console.log("response token", token);
+    var date = moment("2021-03-03").format("YYYY-MM-DD");
+    var parans = {
+      perPage: 10,
+      page: 1,
+      id: "",
+      name: "",
+      city: "",
+      district: "",
+      village: "",
+      street: "",
+      picktime: "",
+      sort: "",
+      pickupPlanId: data_pickup_plan.id,
+    };
+    setIsLoading(true);
+    await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
+      (response) => {
+        console.log("response getPIckup", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setDataPickup(response.data.data);
+          // var data_pick = [];
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // setDataPickup(data_pick);
+          console.log("response getPIckup", response.data.data);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
         }
-        setIsLoading(true)
-        await postData(BASE_URL+GET_BY_PICKUP_PLANE,parans,token).then((response)=>{
-          console.log("response getPIckup", response)
-          setIsLoading(false)
-          if (response.success == true) {
-            setDataPickup(response.data.data)
-            // var data_pick = []
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // data_pick.push(response.data.data[0])
-            // setDataPickup(data_pick)
-            console.log("response getPIckup", response.data.data)
-    
-          }else if(response.message == "Unauthenticated."){
-            goLogout()
-          }
-    
-          })
       }
+    );
+  };
 
+  const _onRefresh = React.useCallback(async () => {
+    setIsRefresh(true);
+    var token = await getValue(TOKEN);
+    console.log("response token", token);
+    var date = moment("2021-03-03").format("YYYY-MM-DD");
+    var parans = {
+      perPage: 10,
+      page: 1,
+      id: "",
+      name: "",
+      city: "",
+      district: "",
+      village: "",
+      street: "",
+      picktime: "",
+      sort: "",
+      pickupPlanId: data_pickup_plan.id,
+    };
+    setIsLoading(true);
+    await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
+      (response) => {
+        console.log("response getPIckup", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setDataPickup(response.data.data);
+          // var data_pick = [];
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // data_pick.push(response.data.data[0]);
+          // setDataPickup(data_pick);
+          console.log("response getPIckup", response.data.data);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      }
+    );
+  }, [isRefresh]);
 
-    const renderIconStatus = (data)  => {
-      if (data.status_pick == "success"){
-        return (
-          <Image
+  const renderIconStatus = (data) => {
+    if (data.status_pick == "success") {
+      return (
+        <Image
           style={styles.icon_check}
-          source={ require("../../../assets/image/ic_check.png")}
-          ></Image>
-        )
-      }else if (data.status_pick == "failed"){
-        return (
-          <Image
+          source={require("../../../assets/image/ic_check.png")}
+        ></Image>
+      );
+    } else if (data.status_pick == "failed") {
+      return (
+        <Image
           style={styles.icon_check}
-          source={ require("../../../assets/image/ic_cross.png")}
-          ></Image>
-        )
-      }else if (data.status_pick == "repickup"){
-        return (
-          <Image
+          source={require("../../../assets/image/ic_cross.png")}
+        ></Image>
+      );
+    } else if (data.status_pick == "repickup") {
+      return (
+        <Image
           style={styles.icon_check}
-          source={ require("../../../assets/image/ic_reload.png")}
-          ></Image>
-        )
-      }
-      
-      else{
-        return (
-          <Image
+          source={require("../../../assets/image/ic_reload.png")}
+        ></Image>
+      );
+    } else {
+      return (
+        <Image
           style={styles.icon_check}
-          source={ require("../../../assets/image/ic_check_yellow.png")}
-          ></Image>
-        )
-      }
+          source={require("../../../assets/image/ic_check_yellow.png")}
+        ></Image>
+      );
     }
+  };
 
-
-    const  renderItem = ({ item, index}) => {
-        return(
-          <TouchableOpacity
-          onPress={() => navigation.navigate("DetailOrder",{
-            id_pickup: item.id
-          })}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginVertical: verticalScale(10),
-            marginTop: verticalScale(5),
-            borderBottomColor: "#DCDCDC",
-            borderBottomWidth: 0.7,
-            paddingBottom: verticalScale(10)
-          }}
-        >
-          <View>
-            <Text>{item.id}</Text>
-            <Text style={[styles.text_title_12, { color: "#4A4A4A"}]}>
-              {item.name}{" "} {item.phone}
-            </Text>
-            <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
+  const renderItem = ({ item, index }) => {
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("DetailOrder", {
+            id_pickup: item.id,
+          })
+        }
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginVertical: verticalScale(10),
+          marginTop: verticalScale(5),
+          borderBottomColor: "#DCDCDC",
+          borderBottomWidth: 0.7,
+          paddingBottom: verticalScale(10),
+        }}
+      >
+        <View>
+          <Text>{item.id}</Text>
+          <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
+            {item.name} {item.phone}
+          </Text>
+          <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
             {item.sender.street}
-            </Text>
-          </View>
+          </Text>
+        </View>
 
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              alignItems: "flex-end",
-            }}
-          ></View>
-          {item.proof_of_pickup != null ? (
-
-           renderIconStatus(item.proof_of_pickup)
-
-          ):(
-            <Image
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            alignItems: "flex-end",
+          }}
+        ></View>
+        {item.proof_of_pickup != null ? (
+          renderIconStatus(item.proof_of_pickup)
+        ) : (
+          <Image
             style={styles.icon_check}
-            source={ require("../../../assets/image/ic_search_grey.png")}
-            ></Image>
-          )}
-          
+            source={require("../../../assets/image/ic_search_grey.png")}
+          ></Image>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
+      <Header></Header>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          marginVertical: verticalScale(10),
+        }}
+      >
+        <TouchableOpacity
+          style={styles.icon_left_arrow}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            style={{
+              height: moderateScale(12),
+              width: moderateScale(20),
+              resizeMode: "stretch",
+            }}
+            source={require("../../../assets/image/left_arrow_black.png")}
+          ></Image>
         </TouchableOpacity>
 
-        )
-      }
+        <Text style={styles.text_header}>{data_pickup_plan.id}</Text>
+      </View>
 
-      return (
-        <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
-          <Header></Header>
+      <View style={styles.container}>
+        <View style={styles.content}>
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "center",
+              borderRadius: moderateScale(12),
+              backgroundColor: "#FFFFFF",
               alignItems: "center",
-              marginVertical: verticalScale(10),
+              paddingHorizontal: moderateScale(5),
             }}
           >
-            <TouchableOpacity
-              style={styles.icon_left_arrow}
-              onPress={() => navigation.goBack()}
+            <Image
+              style={{ width: moderateScale(25), height: moderateScale(25) }}
+              source={require("../../../assets/image/ic_search.png")}
+            ></Image>
+
+            <TextInput placeholder="Cari Order"></TextInput>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              borderRadius: moderateScale(12),
+              backgroundColor: "#FFFFFF",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: moderateScale(5),
+              paddingVertical: verticalScale(8),
+              marginTop: verticalScale(16),
+              marginBottom: verticalScale(20),
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: verticalScale(16),
+              }}
             >
               <Image
-                style={{height: moderateScale(12),width: moderateScale(20),resizeMode:"stretch"}}
-                source={require("../../../assets/image/left_arrow_black.png")}
+                style={{
+                  width: moderateScale(30),
+                  height: moderateScale(30),
+                }}
+                source={require("../../../assets/image/ic_box_red.png")}
               ></Image>
-            </TouchableOpacity>
-  
-            <Text style={styles.text_header}>{data_pickup_plan.id}</Text>
-          </View>
-  
-          <View style={styles.container}>
-            <View style={styles.content}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  borderRadius: moderateScale(12),
-                  backgroundColor: "#FFFFFF",
-                  alignItems: "center",
-                  paddingHorizontal: moderateScale(5),
-                }}
-              >
-                <Image
-                  style={{ width: moderateScale(25), height: moderateScale(25) }}
-                  source={require("../../../assets/image/ic_search.png")}
-                ></Image>
-  
-                <TextInput placeholder="Cari Order"></TextInput>
+
+              <View style={{ marginHorizontal: moderateScale(10) }}>
+                <Text style={styles.text_10}>Total Order</Text>
+                <Text style={styles.text_18_bold}>{data_pickup.length}</Text>
               </View>
-  
-              <View
+            </View>
+
+            <View
+              style={{
+                width: 1,
+                backgroundColor: "#E2E2E2",
+                height: "80%",
+                marginHorizontal: moderateScale(3),
+              }}
+            ></View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: verticalScale(16),
+              }}
+            >
+              <Image
                 style={{
-                  flexDirection: "row",
-                  borderRadius: moderateScale(12),
-                  backgroundColor: "#FFFFFF",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingHorizontal: moderateScale(5),
-                  paddingVertical: verticalScale(8),
-                  marginTop: verticalScale(16),
-                  marginBottom: verticalScale(20),
+                  width: moderateScale(30),
+                  height: moderateScale(30),
                 }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginVertical: verticalScale(16),
-                  }}
-                >
-                  <Image
-                    style={{
-                      width: moderateScale(30),
-                      height: moderateScale(30),
-                    }}
-                    source={require("../../../assets/image/ic_box_red.png")}
-                  ></Image>
-  
-                  <View style={{ marginHorizontal: moderateScale(10) }}>
-                    <Text style={styles.text_10}>Total Order</Text>
-                    <Text style={styles.text_18_bold}>{data_pickup.length}</Text>
-                  </View>
-                </View>
-  
-                <View
-                  style={{
-                    width: 1,
-                    backgroundColor: "#E2E2E2",
-                    height: "80%",
-                    marginHorizontal: moderateScale(3),
-                  }}
-                ></View>
-  
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginVertical: verticalScale(16),
-                  }}
-                >
-                  <Image
-                    style={{
-                      width: moderateScale(30),
-                      height: moderateScale(30),
-                    }}
-                    source={require("../../../assets/image/ic_volume.png")}
-                  ></Image>
-  
-                  <View style={{ marginHorizontal: moderateScale(10) }}>
-                    <Text style={styles.text_10}>Volume (M3)</Text>
-                    <Text style={styles.text_18_bold}>{volume}</Text>
-                  </View>
-                </View>
-  
-                <View
-                  style={{
-                    width: 1,
-                    backgroundColor: "#E2E2E2",
-                    height: "80%",
-                    marginHorizontal: moderateScale(3),
-                  }}
-                ></View>
-  
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginVertical: verticalScale(16),
-                  }}
-                >
-                  <Image
-                    style={{
-                      width: moderateScale(30),
-                      height: moderateScale(30),
-                    }}
-                    source={require("../../../assets/image/ic_berat.png")}
-                  ></Image>
-  
-                  <View style={{ marginHorizontal: moderateScale(10) }}>
-                    <Text style={styles.text_10}>Berat (Kg)</Text>
-                    <Text style={styles.text_18_bold}>{kg}</Text>
-                  </View>
-                </View>
-             
+                source={require("../../../assets/image/ic_volume.png")}
+              ></Image>
+
+              <View style={{ marginHorizontal: moderateScale(10) }}>
+                <Text style={styles.text_10}>Volume (M3)</Text>
+                <Text style={styles.text_18_bold}>{volume}</Text>
               </View>
-  
-              {/* <View style={{backgroundColor:"grey", width : width, flex:1}}> */}
-                <FlatList
-                    data={data_pickup}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => index.toString()}
-                    extraData={selectedId}
-                  />
-              {/* </View> */}
-             
-             
+            </View>
+
+            <View
+              style={{
+                width: 1,
+                backgroundColor: "#E2E2E2",
+                height: "80%",
+                marginHorizontal: moderateScale(3),
+              }}
+            ></View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: verticalScale(16),
+              }}
+            >
+              <Image
+                style={{
+                  width: moderateScale(30),
+                  height: moderateScale(30),
+                }}
+                source={require("../../../assets/image/ic_berat.png")}
+              ></Image>
+
+              <View style={{ marginHorizontal: moderateScale(10) }}>
+                <Text style={styles.text_10}>Berat (Kg)</Text>
+                <Text style={styles.text_18_bold}>{kg}</Text>
+              </View>
             </View>
           </View>
-          <Loading visible={isLoading}></Loading>
-          
-        </SafeAreaView>
-      );
-    
-    
 
+          <FlatList
+            data={data_pickup}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            extraData={selectedId}
+            refreshControl={
+              <RefreshControl
+                colors={["#9Bd35A", "#689F38"]}
+                refreshing={isRefresh}
+                onRefresh={_onRefresh}
+              />
+            }
+          />
+        </View>
+      </View>
+      <Loading visible={isLoading}></Loading>
+    </SafeAreaView>
+  );
 }
 const styles = StyleSheet.create({
   container: {
-    flex:1,
+    flex: 1,
     alignItems: "center",
     backgroundColor: "#F1F1F1",
   },
   content: {
-    flex:1,
+    flex: 1,
     width: width,
     paddingRight: moderateScale(20),
     paddingLeft: moderateScale(20),
     paddingBottom: verticalScale(20),
-    paddingTop: verticalScale(20),
+    paddingTop: verticalScale(10),
   },
   icon_check: {
     width: moderateScale(17),
@@ -406,7 +452,7 @@ const styles = StyleSheet.create({
     left: moderateScale(20),
     width: moderateScale(30),
     height: moderateScale(30),
-    justifyContent:'center',
+    justifyContent: "center",
   },
   text_header: {
     fontFamily: "Montserrat-Bold",
@@ -556,13 +602,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
-
-  
-//   render() {
-  
-//   }
-// }
-
-
-
