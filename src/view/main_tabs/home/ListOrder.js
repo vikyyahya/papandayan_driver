@@ -159,13 +159,14 @@ export default function ListOrder({ navigation, route }) {
       sort: "",
       pickupPlanId: data_pickup_plan.id,
     };
-    setIsLoading(true);
     await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
       (response) => {
         console.log("response getPIckup", response);
         setIsLoading(false);
+        setIsRefresh(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
+        
           // var data_pick = [];
           // data_pick.push(response.data.data[0]);
           // data_pick.push(response.data.data[0]);
@@ -224,6 +225,7 @@ export default function ListOrder({ navigation, route }) {
         onPress={() =>
           navigation.navigate("DetailOrder", {
             id_pickup: item.id,
+            status_pickup: item.status_pickup
           })
         }
         style={{
