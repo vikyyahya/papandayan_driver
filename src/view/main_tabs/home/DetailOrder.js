@@ -19,6 +19,7 @@ import {
 import BottomSheet from "react-native-bottomsheet-reanimated";
 import { ModalWarning, ModalSuccess } from "../../../util/CustModal";
 import { Loading } from "../../../util/Loading";
+import { CustomCamera } from "../../../util/CustomCamera";
 
 import {
   Text,
@@ -48,6 +49,7 @@ export default function DetailOrder({ navigation, route }) {
   const [selectedId, setSeledtedId] = useState("");
   const [units, setUnits] = useState([]);
   const [service, setService] = useState([]);
+  const [data_picture, setDataPicture] = useState();
   const [dataItemsTemporary, setDataTemp] = useState({
     unit_id: "",
     unit_label: "",
@@ -141,6 +143,7 @@ export default function DetailOrder({ navigation, route }) {
       notes: notes,
       driverPick: true,
       pickupId: id_pickup,
+      picture: data_picture,
     };
     console.log("params", params);
     setIsLoading(true);
@@ -163,6 +166,7 @@ export default function DetailOrder({ navigation, route }) {
 
   const getPickupPlan = async (id) => {
     var token = await getValue(TOKEN);
+    setIsLoading(true);
     console.log("response token", token);
     var date = moment("2021-03-03").format("YYYY-MM-DD");
     var params = {
@@ -172,6 +176,7 @@ export default function DetailOrder({ navigation, route }) {
 
     await postData(BASE_URL + DETAIL_PICKUP_DRIVER, params, token).then(
       (response) => {
+        setIsLoading(false);
         console.log("response getPIckup detail", response);
         if (response.success == true) {
           var sender = response.data.sender;
@@ -667,142 +672,181 @@ export default function DetailOrder({ navigation, route }) {
           {detail_pickup != null ? detail_pickup.id : "-"}
         </Text>
       </View>
-
-      <View style={styles.container}>
-        {renderModalUnit()}
-        <View
-          style={{
-            width: width - moderateScale(40),
-            padding: moderateScale(16),
-            backgroundColor: "#FFFFFF",
-            borderRadius: moderateScale(12),
-          }}
-        >
-          <View style={{ flexDirection: "row" }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.text_10}>Nama Pelanggan</Text>
-              <Text style={styles.text_16}>
-                {detail_pickup != null ? detail_pickup.name : "-"}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.text_10}>Nama Pelanggan</Text>
-              <Text style={styles.text_16}>
-                {detail_pickup != null ? detail_pickup.phone : "-"}
-              </Text>
-            </View>
-          </View>
-          <Text
-            style={[
-              styles.text_10,
-              {
-                marginTop: verticalScale(16),
-                marginBottom: verticalScale(5),
-              },
-            ]}
-          >
-            Alamat Pengimputan
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={[styles.text_16, { flex: 1 }]}>
-              {sender_address}
-              {/* Perum Suryadadi B13, Jl. Petogogan IX RT 002 RW 002, Kelurahan
-              Genting Kalianak, Kecamatan Asemrowo, Surabaya */}
-            </Text>
-            <TouchableOpacity>
-              <Image
-                style={{
-                  width: moderateScale(40),
-                  height: moderateScale(40),
-                  resizeMode: "stretch",
-                }}
-                source={require("../../../assets/image/ic_location_map.png")}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ flexDirection: "row", marginTop: verticalScale(16) }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.text_10}>APD</Text>
-              <Text style={styles.text_16}>
-                {detail_pickup != null
-                  ? detail_pickup.picktime.substring(0, 11)
-                  : "-"}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.text_10}>Tujuan</Text>
-              <Text style={styles.text_16}>
-                {detail_pickup != null ? detail_pickup.receiver.city : "-"}
-              </Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", marginTop: verticalScale(16) }}>
-            <Text style={[styles.text_10, { flex: 1 }]}>Nama barang</Text>
-            <Text style={[styles.text_10, { flex: 0.6 }]}>Jumlah</Text>
-            <Text style={[styles.text_10, { flex: 0.6 }]}>Berat Total</Text>
-            <Text style={[styles.text_10, { flex: 0.8 }]}>Req Layanan</Text>
-            <View
-              style={{ width: moderateScale(15), height: moderateScale(15) }}
-            ></View>
-          </View>
-
-          <FlatList
-            data={data_item}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            extraData={selectedId}
-          />
-        </View>
-        <View
-          style={{
-            width: width - moderateScale(40),
-            marginTop: verticalScale(20),
-            marginBottom: verticalScale(10),
-          }}
-        >
-          <Text>Status Pickup</Text>
-        </View>
-        <View
-          style={{
-            width: width - moderateScale(40),
-            paddingHorizontal: moderateScale(16),
-            backgroundColor: "#FFFFFF",
-            borderRadius: moderateScale(12),
-          }}
-        >
-          <Picker
-            style={styles.picker}
-            itemStyle={{
-              fontSize: moderateScale(3),
+      <ScrollView>
+        <View style={styles.container}>
+          {renderModalUnit()}
+          <View
+            style={{
+              width: width - moderateScale(40),
+              padding: moderateScale(16),
+              backgroundColor: "#FFFFFF",
+              borderRadius: moderateScale(12),
             }}
-            mode="dropdown"
-            placeholder="- Pilih -"
-            selectedValue={status}
-            onValueChange={(value, label) => onValueStatus(value, label)}
           >
-            <Picker.Item label="- Pilih -" value="" />
-            <Picker.Item key={0} label="sukses" value="sukses" />
-            <Picker.Item key={1} label="gagal" value="gagal" />
-            <Picker.Item key={2} label="ada perubahan" value="ada perubahan" />
-          </Picker>
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>Nama Pelanggan</Text>
+                <Text style={styles.text_16}>
+                  {detail_pickup != null ? detail_pickup.name : "-"}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>Nama Pelanggan</Text>
+                <Text style={styles.text_16}>
+                  {detail_pickup != null ? detail_pickup.phone : "-"}
+                </Text>
+              </View>
+            </View>
+            <Text
+              style={[
+                styles.text_10,
+                {
+                  marginTop: verticalScale(16),
+                  marginBottom: verticalScale(5),
+                },
+              ]}
+            >
+              Alamat Pengimputan
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={[styles.text_16, { flex: 1 }]}>
+                {sender_address}
+                {/* Perum Suryadadi B13, Jl. Petogogan IX RT 002 RW 002, Kelurahan
+              Genting Kalianak, Kecamatan Asemrowo, Surabaya */}
+              </Text>
+              <TouchableOpacity>
+                <Image
+                  style={{
+                    width: moderateScale(40),
+                    height: moderateScale(40),
+                    resizeMode: "stretch",
+                  }}
+                  source={require("../../../assets/image/ic_location_map.png")}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={{ flexDirection: "row", marginTop: verticalScale(16) }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>APD</Text>
+                <Text style={styles.text_16}>
+                  {detail_pickup != null
+                    ? detail_pickup.picktime.substring(0, 11)
+                    : "-"}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>Tujuan</Text>
+                <Text style={styles.text_16}>
+                  {detail_pickup != null ? detail_pickup.receiver.city : "-"}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={{ flexDirection: "row", marginTop: verticalScale(16) }}
+            >
+              <Text style={[styles.text_10, { flex: 1 }]}>Nama barang</Text>
+              <Text style={[styles.text_10, { flex: 0.6 }]}>Jumlah</Text>
+              <Text style={[styles.text_10, { flex: 0.6 }]}>Berat Total</Text>
+              <Text style={[styles.text_10, { flex: 0.8 }]}>Req Layanan</Text>
+              <View
+                style={{ width: moderateScale(15), height: moderateScale(15) }}
+              ></View>
+            </View>
+
+            <FlatList
+              data={data_item}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => index.toString()}
+              extraData={selectedId}
+            />
+          </View>
+          <View
+            style={{
+              width: width - moderateScale(40),
+              marginTop: verticalScale(20),
+              marginBottom: verticalScale(10),
+            }}
+          >
+            <Text>Status Pickup</Text>
+          </View>
+          <View
+            style={{
+              width: width - moderateScale(40),
+              paddingHorizontal: moderateScale(16),
+              backgroundColor: "#FFFFFF",
+              borderRadius: moderateScale(12),
+            }}
+          >
+            <Picker
+              style={styles.picker}
+              itemStyle={{
+                fontSize: moderateScale(3),
+              }}
+              mode="dropdown"
+              placeholder="- Pilih -"
+              selectedValue={status}
+              onValueChange={(value, label) => onValueStatus(value, label)}
+            >
+              <Picker.Item label="- Pilih -" value="" />
+              <Picker.Item key={0} label="sukses" value="sukses" />
+              <Picker.Item key={1} label="gagal" value="gagal" />
+              <Picker.Item
+                key={2}
+                label="ada perubahan"
+                value="ada perubahan"
+              />
+            </Picker>
+          </View>
+          <View
+            style={{
+              width: width - moderateScale(40),
+              marginTop: verticalScale(20),
+              marginBottom: verticalScale(10),
+            }}
+          >
+            <Text>Gambar</Text>
+            <View
+              style={{
+                width: width - moderateScale(40),
+                height: verticalScale(200),
+                marginVertical: verticalScale(8),
+                borderRadius: moderateScale(20),
+                backgroundColor: "#d5dedc",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity>
+                <Image
+                  style={{
+                    width: moderateScale(100),
+                    height: moderateScale(100),
+                    resizeMode: "stretch",
+                  }}
+                  source={require("../../../assets/image/photo_camera.png")}
+                ></Image>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => submitPickup()}
+                style={styles.button_primary}
+              >
+                <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
+                  PICK UP
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          marginHorizontal: moderateScale(20),
-          position: "absolute",
-          bottom: 20,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => submitPickup()}
-          style={styles.button_primary}
-        >
-          <Text style={[styles.text_14, { color: "#FFFFFF" }]}>PICK UP</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {renderModal()}
       {renderBottomSheet()}
@@ -818,6 +862,12 @@ export default function DetailOrder({ navigation, route }) {
         message={messageModalWarning}
         onOk={() => onOkEdit()}
       ></ModalWarning>
+      <CustomCamera
+        modalVisible={this.state.isCustomCamera}
+        initialProps={this.props}
+        onPicture={(value) => onPicture(value)}
+        onCapture={(v) => onCapture(v)}
+      ></CustomCamera>
     </SafeAreaView>
   );
 }

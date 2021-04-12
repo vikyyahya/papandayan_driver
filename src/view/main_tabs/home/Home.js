@@ -37,6 +37,7 @@ export default function Home({ navigation }) {
   const [selectedId, setSelectedId] = useState(0);
   const [name, setName] = useState("");
   const [isRefresh, setIsRefresh] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -45,6 +46,9 @@ export default function Home({ navigation }) {
       getDataProfile();
     });
     return unsubscribe;
+  }, []);
+  useEffect(() => {
+    setIsLoading(true);
   }, []);
 
   const goLogout = () => {
@@ -88,6 +92,7 @@ export default function Home({ navigation }) {
     };
     await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
       console.log("response getPIckup home", response);
+      setIsLoading(false);
       if (response.success == true) {
         setDataPickup(response.data.data);
         console.log("response getPIckup home", response.data.data);
@@ -159,7 +164,8 @@ export default function Home({ navigation }) {
           width: width - moderateScale(40),
           borderRadius: moderateScale(12),
           alignItems: "center",
-          marginVertical: verticalScale(10),
+          justifyContent: "center",
+          marginVertical: verticalScale(5),
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.8,
@@ -255,6 +261,7 @@ export default function Home({ navigation }) {
           }
         />
       </View>
+      <Loading visible={isLoading}></Loading>
     </SafeAreaView>
   );
 }
