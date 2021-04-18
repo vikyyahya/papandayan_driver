@@ -15,11 +15,13 @@ import {
   EDIT_ITEM_DRIVER,
   postData,
   getData,
+  postFormData,
 } from "../../../network/ApiService";
 import BottomSheet from "react-native-bottomsheet-reanimated";
 import { ModalWarning, ModalSuccess } from "../../../util/CustModal";
 import { Loading } from "../../../util/Loading";
 import { CustomCamera } from "../../../util/CustomCamera";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 
 import {
   Text,
@@ -35,12 +37,13 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   FlatList,
+  PermissionsAndroid,
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 const snapPoints = [0, height / 2, "70%", "100%"];
 
-export default function DetailOrder({ navigation, route }) {
+export default function DetailOrder({ navigation, route, props }) {
   const [reason, setReason] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [detail_pickup, setDataDetailPickup] = useState(null);
@@ -50,6 +53,9 @@ export default function DetailOrder({ navigation, route }) {
   const [units, setUnits] = useState([]);
   const [service, setService] = useState([]);
   const [data_picture, setDataPicture] = useState();
+  const [dataImage, setDataImage] = useState("");
+  const [uriImage, setUriImage] = useState("");
+
   const [dataItemsTemporary, setDataTemp] = useState({
     unit_id: "",
     unit_label: "",
@@ -64,6 +70,8 @@ export default function DetailOrder({ navigation, route }) {
   const [isModalWarning, setIsModalWarning] = useState(false);
   const [messageModalWarning, setMessageModalWarning] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCustomCamera, setIsCustomCamera] = useState(false);
+  const [isEditPhoto, setIsEditPhoto] = useState(false);
 
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
@@ -308,6 +316,105 @@ export default function DetailOrder({ navigation, route }) {
 
   const onOkEdit = () => {
     setIsModalWarning(false);
+  };
+
+  const onPicture = (value) => {
+    setIsCustomCamera(false);
+    setDataImage(value);
+    setUriImage(value.uri);
+    console.log("onPicture", value);
+  };
+
+  const onCapture = () => {};
+
+  const onChooseImage = async () => {
+    let options = {
+      mediaType: "photo",
+      maxWidth: 300,
+      maxHeight: 550,
+      quality: 1,
+    };
+    launchImageLibrary(options, (response) => {
+      console.log("Response = ", response);
+
+      if (response.didCancel) {
+        setIsEditPhoto(false);
+        // dispatch(onDataForShowAlertDefault("Your cancel"));
+        return;
+      } else if (response.errorCode == "camera_unavailable") {
+        setIsEditPhoto(false);
+        // dispatch(onDataForShowAlertDefault("Camera not available on device"));
+        return;
+      } else if (response.errorCode == "permission") {
+        setIsEditPhoto(false);
+        // dispatch(onDataForShowAlertDefault("Permission not satisfied"));
+        return;
+      } else if (response.errorCode == "others") {
+        setIsEditPhoto(false);
+        // dispatch(onDataForShowAlertDefault(response.errorMessage));
+        return;
+      }
+
+      if ((response.fileSize / (1024 * 1024)).toFixed(2) > 2) {
+        setIsEditPhoto(false);
+        // dispatch(onDataForShowAlertDefault("Photo size minimal 2 mb"));
+      } else {
+        setIsEditPhoto(false);
+        onPicture(response);
+        // uploadFileToServer(response);
+      }
+      // console.log('base64 -> ', response.base64);
+      // console.log('uri -> ', response.uri);
+      // console.log('width -> ', response.width);
+      // console.log('height -> ', response.height);
+      // console.log('fileSize -> ', response.fileSize);
+      // console.log('type -> ', response.type);
+      // console.log('fileName -> ', response.fileName);
+    });
+  };
+
+  const requestCameraPermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        var isPermissionGranted = false;
+        const granted = await PermissionsAndroid.requestMultiple(
+          [
+            PermissionsAndroid.PERMISSIONS.CAMERA,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          ],
+          {
+            title: "Perizinan Aplikasi",
+            message: "Aplikasi ini membutuhkan akses kamera ",
+            buttonNeutral: "Tanyakan nanti",
+            buttonNegative: "Batal",
+            buttonPositive: "OK",
+          }
+        );
+        for (var propName in granted) {
+          if (granted.hasOwnProperty(propName)) {
+            var propValue = granted[propName];
+            isPermissionGranted = true;
+            // do something with each element here
+          } else {
+            isPermissionGranted = false;
+          }
+        }
+
+        if (isPermissionGranted) {
+          lounchCamera();
+        } else {
+          console.log("Camera permission denied", granted);
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    } else {
+      lounchCamera();
+    }
+  };
+  const lounchCamera = async () => {
+    setIsEditPhoto(false);
+    setIsCustomCamera(true);
   };
 
   const renderModal = () => {
@@ -646,6 +753,85 @@ export default function DetailOrder({ navigation, route }) {
     );
   };
 
+  const RenderAddImage = () => {
+    return (
+      <Modal animationType="fade" transparent={true} visible={isEditPhoto}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(42, 42, 42, 0.8)",
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              top: 0,
+              left: 0,
+              width: width,
+              height: height,
+              position: "absolute",
+              backgroundColor: "transparent",
+            }}
+            onPress={() => setIsEditPhoto(false)}
+          />
+          <View
+            style={{
+              zIndex: 10,
+              padding: moderateScale(18),
+              backgroundColor: "#ffffff",
+              borderRadius: moderateScale(3),
+              width: width - moderateScale(48),
+            }}
+          >
+            <View>
+              <Text
+                style={{
+                  fontFamily: "Montserrat-Bold",
+                  textTransform: "capitalize",
+                  fontSize: moderateScale(18),
+                }}
+              >
+                Tambah gambar
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={{ marginTop: verticalScale(16) }}
+              onPress={() => onChooseImage()}
+            >
+              <Text
+                style={{
+                  fontFamily: "Montserrat-Regular",
+                  textTransform: "capitalize",
+                  fontSize: moderateScale(14),
+                }}
+              >
+                Galeri
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                marginTop: verticalScale(16),
+                marginBottom: verticalScale(4),
+              }}
+              onPress={() => requestCameraPermission()}
+            >
+              <Text
+                style={{
+                  fontFamily: "Montserrat-Regular",
+                  textTransform: "capitalize",
+                  fontSize: moderateScale(14),
+                }}
+              >
+                Kamera
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
@@ -819,14 +1005,18 @@ export default function DetailOrder({ navigation, route }) {
                 alignItems: "center",
               }}
             >
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
                 <Image
                   style={{
                     width: moderateScale(100),
                     height: moderateScale(100),
                     resizeMode: "stretch",
                   }}
-                  source={require("../../../assets/image/photo_camera.png")}
+                  source={
+                    uriImage != ""
+                      ? { uri: uriImage }
+                      : require("../../../assets/image/photo_camera.png")
+                  }
                 ></Image>
               </TouchableOpacity>
             </View>
@@ -863,11 +1053,12 @@ export default function DetailOrder({ navigation, route }) {
         onOk={() => onOkEdit()}
       ></ModalWarning>
       <CustomCamera
-        modalVisible={this.state.isCustomCamera}
-        initialProps={this.props}
+        modalVisible={isCustomCamera}
+        initialProps={props}
         onPicture={(value) => onPicture(value)}
         onCapture={(v) => onCapture(v)}
       ></CustomCamera>
+      <RenderAddImage />
     </SafeAreaView>
   );
 }

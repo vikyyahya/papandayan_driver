@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const BASE_URL = "https://papandayan.ival.online/public/";
 export const LOGIN = "api/login-driver";
 export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
@@ -6,6 +8,7 @@ export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
 export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
 export const EDIT_ITEM_DRIVER = "api/driver/item/update";
+export const UPLOAD_PICTURE_POP = "api/tracking/upload-picture";
 
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";
@@ -93,5 +96,31 @@ export const deleteData = async (url, token) => {
     return json;
   } catch (error) {
     console.error("error deleteData", error);
+  }
+};
+
+export const postFormData = async (url, data, token) => {
+  console.log("postFormData", data);
+
+  try {
+    // getToken();
+    var headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    };
+    return new Promise((resolve, reject) => {
+      axios
+        .post(url, data, { headers: headers })
+        .then((res) => {
+          resolve(res.data);
+          // console.log('data resolve di rest', res);
+        })
+        .catch((err) => {
+          reject(err);
+          console.log("data reject di rest", err.response);
+        });
+    });
+  } catch (error) {
+    // console.error("error postData", error);
   }
 };
