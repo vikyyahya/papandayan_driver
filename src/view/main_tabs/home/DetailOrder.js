@@ -38,6 +38,7 @@ import {
   ScrollView,
   FlatList,
   PermissionsAndroid,
+  Platform,
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
@@ -171,6 +172,10 @@ export default function DetailOrder({ navigation, route, props }) {
         console.log("response error", error);
       });
   };
+
+  const uploadPhoto = () =>{
+    
+  }
 
   const getPickupPlan = async (id) => {
     var token = await getValue(TOKEN);
@@ -332,7 +337,7 @@ export default function DetailOrder({ navigation, route, props }) {
       mediaType: "photo",
       maxWidth: 300,
       maxHeight: 550,
-      quality: 1,
+      includeBase64: false,
     };
     launchImageLibrary(options, (response) => {
       console.log("Response = ", response);
@@ -1006,18 +1011,25 @@ export default function DetailOrder({ navigation, route, props }) {
               }}
             >
               <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                <Image
-                  style={{
-                    width: moderateScale(100),
-                    height: moderateScale(100),
-                    resizeMode: "stretch",
-                  }}
-                  source={
-                    uriImage != ""
-                      ? { uri: uriImage }
-                      : require("../../../assets/image/photo_camera.png")
-                  }
-                ></Image>
+                {uriImage != "" ? (
+                  <Image
+                    style={{
+                      width: width - moderateScale(40),
+                      height: verticalScale(200),
+                      borderRadius: moderateScale(20),
+                    }}
+                    source={{ uri: uriImage }}
+                  ></Image>
+                ) : (
+                  <Image
+                    style={{
+                      width: moderateScale(100),
+                      height: moderateScale(100),
+                      resizeMode: "stretch",
+                    }}
+                    source={require("../../../assets/image/photo_camera.png")}
+                  ></Image>
+                )}
               </TouchableOpacity>
             </View>
             <View
@@ -1026,7 +1038,7 @@ export default function DetailOrder({ navigation, route, props }) {
               }}
             >
               <TouchableOpacity
-                onPress={() => submitPickup()}
+                onPress={() => setModalVisible(true)}
                 style={styles.button_primary}
               >
                 <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
