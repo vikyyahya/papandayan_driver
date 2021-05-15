@@ -15,8 +15,12 @@ import SplashScreen from "../view/splash_screen";
 import IntroScreen from "../view/intro_screen";
 // import Home from "../view/main_tabs/home";
 import Home from "../view/main_tabs/home/Home";
+import HomeOne from "../view/main_tabs/home/HomeOne";
+import HomePOD from "../view/main_tabs/home/HomePOD";
+import ListOrderPOD from "../view/main_tabs/home/ListOrderPOD";
 import ListOrder from "../view/main_tabs/home/ListOrder";
 import DetailOrder from "../view/main_tabs/home/DetailOrder";
+import DetailOrderPOD from "../view/main_tabs/home/DetailOrderPOD";
 
 import Rates from "../view/main_tabs/rates";
 import History from "../view/main_tabs/history";
@@ -118,6 +122,38 @@ const AppNavigation = () => {
           name="DetailOrder"
           component={DetailOrder}
         />
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            animationEnabled: false,
+          }}
+          name="POP"
+          component={Home}
+        />
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            animationEnabled: false,
+          }}
+          name="HomePOD"
+          component={HomePOD}
+        />
+         <Stack.Screen
+          options={{
+            headerShown: false,
+            animationEnabled: false,
+          }}
+          name="ListOrderPOD"
+          component={ListOrderPOD}
+        />
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            animationEnabled: false,
+          }}
+          name="DetailOrderPOD"
+          component={DetailOrderPOD}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -126,7 +162,7 @@ const AppNavigation = () => {
 function MainTabs() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="HomeOne"
       tabBarOptions={{
         showLabel: true,
         activeTintColor: "red",
@@ -147,7 +183,7 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={Home}
+        component={HomeOne}
         options={{
           tabBarIcon: ({ color, size }) => (
             <>

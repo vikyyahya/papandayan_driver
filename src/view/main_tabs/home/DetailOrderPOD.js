@@ -62,7 +62,7 @@ import {
 const { width, height } = Dimensions.get("window");
 const snapPoints = [0, height / 2, "70%", "100%"];
 
-export default function DetailOrder({ navigation, route, props }) {
+export default function DetailOrderPOD({ navigation, route, props }) {
   const [reason, setReason] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [detail_pickup, setDataDetailPickup] = useState(null);
@@ -106,7 +106,7 @@ export default function DetailOrder({ navigation, route, props }) {
   const [selectedValue, setSelectedValue] = React.useState("ble");
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
-  const { id_pickup, status_pickup } = route.params;
+  const { id_pickup, status_pickup ,number} = route.params;
   console.log("status_pickup", status_pickup);
 
   const refBottomSheet = useRef(null);
@@ -756,12 +756,12 @@ export default function DetailOrder({ navigation, route, props }) {
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>
-          <TouchableOpacity onPress={() => onEdit(2, item)}>
+          {/* <TouchableOpacity onPress={() => onEdit(2, item)}>
             <Image
               style={{ width: moderateScale(15), height: moderateScale(15) }}
               source={require("../../../assets/image/ic_edit.png")}
             ></Image>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <View style={styles.line}></View>
       </View>
@@ -1048,7 +1048,7 @@ export default function DetailOrder({ navigation, route, props }) {
         </TouchableOpacity>
 
         <Text style={styles.text_header}>
-          {detail_pickup != null ? detail_pickup.id : "-"}
+          {number != null ? number : "-"}
         </Text>
       </View>
       <ScrollView>

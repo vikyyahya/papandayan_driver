@@ -1,12 +1,15 @@
 import axios from "axios";
 
-export const BASE_URL = "https://papandayan.ival.online/public/";
+export const BASE_URL = "https://cargo.ivalpha.com/public/";
 export const LOGIN = "api/login-driver";
 export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
+export const LIST_POD = "api/driver/shipment-plan/list";
 export const GET_BY_PICKUP_PLANE = "api/driver/pickup/get-by-pickup-plan";
+export const GET_SHIPMENT_PLANE = "api/driver/shipment-plan/pickup";
 export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
 export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
+export const DASHBOARD_POD = "api/driver/shipment-plan/dashboard";
 export const EDIT_ITEM_DRIVER = "api/driver/item/update";
 export const UPLOAD_PICTURE_POP = "api/tracking/upload-picture";
 
@@ -100,7 +103,9 @@ export const deleteData = async (url, token) => {
 };
 
 export const postFormData = async (url, data, token) => {
+  console.log("postFormData", url);
   console.log("postFormData", data);
+  console.log("postFormData", token);
 
   try {
     // getToken();
@@ -113,14 +118,14 @@ export const postFormData = async (url, data, token) => {
         .post(url, data, { headers: headers })
         .then((res) => {
           resolve(res.data);
-          // console.log('data resolve di rest', res);
+          console.log("postFormData", res);
         })
         .catch((err) => {
           reject(err);
-          console.log("data reject di rest", err.response);
+          console.log("postFormData", err.response);
         });
     });
   } catch (error) {
-    // console.error("error postData", error);
+    console.error("postFormData error", error);
   }
 };

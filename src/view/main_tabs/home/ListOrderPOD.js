@@ -5,8 +5,8 @@ import Header from "../../Header";
 import { saveData } from "../../../util/AsyncStorage";
 import {
   BASE_URL,
-  GET_BY_PICKUP_PLANE,
-  TOTAL_VOL_DRIVER,
+  GET_SHIPMENT_PLANE,
+  DASHBOARD_POD,
   getData,
   postData,
 } from "../../../network/ApiService";
@@ -25,18 +25,19 @@ import {
   StatusBar,
   TouchableOpacity,
   KeyboardAvoidingView,
-  ScrollView,
+  Alert,
   FlatList,
   RefreshControl,
 } from "react-native";
-import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 
-export default function ListOrder({ navigation, route }) {
+export default function ListOrderPOD({ navigation, route }) {
   const [data_pickup, setDataPickup] = useState([]);
   const [selectedId, setSelectedId] = useState(0);
   const [kg, setKg] = useState(0);
   const [volume, setVolume] = useState(0);
+  const [searchShipmentPlan, setSearchShipmentPlan] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const { data_pickup_plan } = route.params;
   const [isRefresh, setIsRefresh] = useState(false);
@@ -65,112 +66,94 @@ export default function ListOrder({ navigation, route }) {
   const getVolumeAndTotal = async () => {
     var token = await getValue(TOKEN);
     var parans = {
-      pickupPlanId: data_pickup_plan.id,
+      shipmentPlanId: data_pickup_plan.id,
     };
     setIsLoading(true);
-    await postData(BASE_URL + TOTAL_VOL_DRIVER, parans, token)
+    await postData(BASE_URL + DASHBOARD_POD, parans, token)
       .then((response) => {
-        console.log("response TOTAL_VOL_DRIVER", response);
         setIsLoading(false);
         if (response.success == true) {
-          setKg(response.data.kilo);
+          setKg(response.data.weight);
           setVolume(response.data.volume);
         } else {
         }
       })
       .catch((error) => {
-        console.log("error TOTAL_VOL_DRIVER", error);
+        console.error("error DASHBOARD_POD", error);
       });
+  };
+
+  const searchPickupPlan = async () => {
+    var token = await getValue(TOKEN);
+    var params = {
+      filter: searchShipmentPlan,
+      shipmentPlanId: data_pickup_plan.id,
+    };
+    console.log("params getPIsearchPickupPlanckup", params);
+    setIsLoading(true);
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, params, token).then(
+      (response) => {
+        console.log("response getPIsearchPickupPlanckup", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setDataPickup(response.data.data);
+          console.log("response searchPickupPlan", response.data.data);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      }
+    ).catch((error)=>{
+      setIsLoading(false);
+    });
   };
 
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
-    console.log("response token", token);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
-      perPage: 10,
-      page: 1,
-      id: "",
-      name: "",
-      city: "",
-      district: "",
-      village: "",
-      street: "",
-      picktime: "",
-      sort: "",
-      pickupPlanId: data_pickup_plan.id,
+      filter: "",
+      shipmentPlanId: data_pickup_plan.id,
     };
     setIsLoading(true);
-    await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token).then(
       (response) => {
         console.log("response getPIckup", response);
         setIsLoading(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
-          // var data_pick = [];
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // setDataPickup(data_pick);
           console.log("response getPIckup", response.data.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
       }
-    );
+    ).catch((error)=>{
+      setIsLoading(false);
+    });
   };
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
     var token = await getValue(TOKEN);
-    console.log("response token", token);
     var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
-      perPage: 10,
-      page: 1,
-      id: "",
-      name: "",
-      city: "",
-      district: "",
-      village: "",
-      street: "",
-      picktime: "",
-      sort: "",
-      pickupPlanId: data_pickup_plan.id,
+      filter: "",
+      shipmentPlanId: data_pickup_plan.id,
     };
-    await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token).then(
       (response) => {
         console.log("response getPIckup", response);
         setIsLoading(false);
         setIsRefresh(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
-        
-          // var data_pick = [];
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // setDataPickup(data_pick);
           console.log("response getPIckup", response.data.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
       }
-    );
+    ).catch((error)=>{
+      setIsLoading(false);
+      setIsRefresh(false);
+    });
   }, [isRefresh]);
 
   const renderIconStatus = (data) => {
@@ -209,9 +192,10 @@ export default function ListOrder({ navigation, route }) {
     return (
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate("DetailOrder", {
+          navigation.navigate("DetailOrderPOD", {
             id_pickup: item.id,
-            status_pickup: item.proof_of_pickup.status_pick
+            status_pickup: item.status_pickup,
+            number: item.number
           })
         }
         style={{
@@ -225,12 +209,12 @@ export default function ListOrder({ navigation, route }) {
         }}
       >
         <View>
-          <Text>{item.id}</Text>
-          <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
+          <Text>{item.number}</Text>
+          <Text style={[styles.text_14, { color: "#4A4A4A" }]}>
             {item.name} {item.phone}
           </Text>
-          <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
-            {item.sender.street}
+          <Text style={[styles.text_12, { color: "#4A4A4A" }]}>
+            {item.receiver.street}
           </Text>
         </View>
 
@@ -279,7 +263,7 @@ export default function ListOrder({ navigation, route }) {
           ></Image>
         </TouchableOpacity>
 
-        <Text style={styles.text_header}>{data_pickup_plan.id}</Text>
+        <Text style={styles.text_header}>{data_pickup_plan.number}</Text>
       </View>
 
       <View style={styles.container}>
@@ -290,15 +274,25 @@ export default function ListOrder({ navigation, route }) {
               borderRadius: moderateScale(12),
               backgroundColor: "#FFFFFF",
               alignItems: "center",
-              paddingHorizontal: moderateScale(5),
+              paddingHorizontal: moderateScale(10),
             }}
           >
-            <Image
-              style={{ width: moderateScale(25), height: moderateScale(25) }}
-              source={require("../../../assets/image/ic_search.png")}
-            ></Image>
+            <TouchableOpacity onPress={() => searchPickupPlan()}>
+              <Image
+                style={{ width: moderateScale(20), height: moderateScale(20) }}
+                source={require("../../../assets/image/ic_search.png")}
+              ></Image>
+            </TouchableOpacity>
 
-            <TextInput placeholder="Cari Order"></TextInput>
+            <TextInput
+              style={{ width: "100%" }}
+              value={searchShipmentPlan}
+              placeholder="Cari Order"
+              onChangeText={(value) => setSearchShipmentPlan(value)}
+              multiline={false}
+              returnKeyType={"done"}
+              onSubmitEditing={(event) => searchPickupPlan()}
+            ></TextInput>
           </View>
 
           <View
@@ -528,6 +522,7 @@ const styles = StyleSheet.create({
   text_14: {
     color: "#FFFFFF",
     fontFamily: "Montserrat-Regular",
+    fontSize: moderateScale(14),
   },
   text_18: {
     textAlign: "left",
@@ -536,7 +531,7 @@ const styles = StyleSheet.create({
   text_12: {
     textAlign: "left",
     fontFamily: "Montserrat-Regular",
-    fontSize: 12,
+    fontSize: moderateScale(12),
   },
   text_12_bold: {
     textAlign: "left",
