@@ -38,10 +38,9 @@ export default function ListOrder({ navigation, route }) {
   const [kg, setKg] = useState(0);
   const [volume, setVolume] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const { data_pickup_plan } = route.params;
+  const { data_pickup_plan ,number} = route.params;
   const [isRefresh, setIsRefresh] = useState(false);
 
-  console.log("data_pickup_plan param", data_pickup_plan);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -103,23 +102,11 @@ export default function ListOrder({ navigation, route }) {
     setIsLoading(true);
     await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
       (response) => {
-        console.log("response getPIckup", response);
+        console.log("response getPIckup1", response);
         setIsLoading(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
-          // var data_pick = [];
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // setDataPickup(data_pick);
-          console.log("response getPIckup", response.data.data);
+          console.log("response getPIckup2", response.data.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
@@ -147,25 +134,12 @@ export default function ListOrder({ navigation, route }) {
     };
     await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
       (response) => {
-        console.log("response getPIckup", response);
+        console.log("response getPIckup1", response);
         setIsLoading(false);
         setIsRefresh(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
-        
-          // var data_pick = [];
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // data_pick.push(response.data.data[0]);
-          // setDataPickup(data_pick);
-          console.log("response getPIckup", response.data.data);
+          console.log("response getPIckup2", response.data.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
@@ -206,12 +180,14 @@ export default function ListOrder({ navigation, route }) {
   };
 
   const renderItem = ({ item, index }) => {
+    console.log("renderItem ", item);
+
     return (
       <TouchableOpacity
         onPress={() =>
           navigation.navigate("DetailOrder", {
             id_pickup: item.id,
-            status_pickup: item.proof_of_pickup.status_pick
+            status_pickup: item.proof_of_pickup == null ? "" : item.proof_of_pickup.status_pick
           })
         }
         style={{
@@ -279,7 +255,7 @@ export default function ListOrder({ navigation, route }) {
           ></Image>
         </TouchableOpacity>
 
-        <Text style={styles.text_header}>{data_pickup_plan.id}</Text>
+        <Text style={styles.text_header}>{data_pickup_plan.number}</Text>
       </View>
 
       <View style={styles.container}>

@@ -152,10 +152,12 @@ export default function Home({ navigation }) {
 
   const renderItem = ({ item, index }) => {
     console.log("data", item);
+    var date = moment(item.created_at).format("YYYY-MM-DD");
+
     return (
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate("ListOrder", { data_pickup_plan: item })
+          navigation.navigate("ListOrder", { data_pickup_plan: item , number : item.number})
         }
         style={{
           flexDirection: "row",
@@ -189,9 +191,12 @@ export default function Home({ navigation }) {
           source={require("../../../assets/image/ic_box_red.png")}
         ></Image>
         <View>
-          <Text style={styles.text_14_bold}>{item.id}</Text>
+          <Text style={styles.text_14_bold}>{item.number}</Text>
           <Text style={[styles.text_11, { color: "#262F56" }]}>
             Total {item.total_pickup_order} order pelanggan
+          </Text>
+          <Text style={[styles.text_11, { color: "#262F56" }]}>
+            {date}
           </Text>
         </View>
         <View

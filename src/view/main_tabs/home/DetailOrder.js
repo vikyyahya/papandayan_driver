@@ -240,7 +240,7 @@ export default function DetailOrder({ navigation, route, props }) {
     console.log("uploadPhoto", data_img);
     form.append("picture", {
       uri: data_img.uri,
-      name: "tes",
+      name: data_img.name,
       type: "image/jpeg",
     });
 
@@ -249,7 +249,7 @@ export default function DetailOrder({ navigation, route, props }) {
         console.log("uploadPhoto Picture", response);
         if (response.success == true) {
           console.log("uploadPhoto Picture", "true");
-          setDataImage(response.data.base_url + response.data.path);
+          setDataImage(response.data.path);
           // submitPickup
         }
       })
@@ -328,6 +328,8 @@ export default function DetailOrder({ navigation, route, props }) {
 
   const onSuccess = () => {
     setIsModalSuccess(false);
+    navigation.goBack();
+
   };
 
   const onEdit = (index, data) => {
@@ -440,8 +442,39 @@ export default function DetailOrder({ navigation, route, props }) {
   const onPicture = async (value) => {
     await setIsCustomCamera(false);
     await setUriImage(value.uri);
-    await setDataImage(value);
-    uploadPhoto(value);
+    var dataTmpImage = value;
+
+    for (var i = 0; i < 10; i++) {
+      await ImageResizer.createResizedImage(
+        dataTmpImage.uri,
+        500,
+        500,
+        "JPEG",
+        50,
+        0,
+        undefined,
+        false
+      )
+        .then((response) => {
+          console.log("onPicture=>>>>>>>>", response);
+          dataTmpImage = response;
+          if (response.size < 10000) {
+            i = 10;
+            console.log("onPicture upload=>>>>>>>>", response);
+            uploadPhoto(dataTmpImage);
+          }
+          // response.uri is the URI of the new image that can now be displayed, uploaded...
+          // response.path is the path of the new image
+          // response.name is the name of the new image with the extension
+          // response.size is the size of the new image
+        })
+        .catch((err) => {
+          console.log("onPicture error=>>>>>>>>", err);
+
+          // Oops, something went wrong. Check that the filename is correct and
+          // inspect err to get more details.
+        });
+    }
     console.log("onPicture", value);
   };
 
@@ -752,7 +785,7 @@ export default function DetailOrder({ navigation, route, props }) {
         <View style={{ flexDirection: "row", marginTop: verticalScale(8) }}>
           <Text style={[styles.text_10, { flex: 1 }]}>{item.name}</Text>
           <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_count}</Text>
-          <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_total}</Text>
+          <Text style={[styles.text_10, { flex: 0.6 }]}>{item.weight + " " + item.weight_unit}</Text>
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>

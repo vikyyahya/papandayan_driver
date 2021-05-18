@@ -36,7 +36,7 @@ export const CustomCamera = ({
   ] = useCamera(initialProps);
 
   const takePictureFromCamera = async () => {
-    const options = { quality: 0.3, base64: true, fixOrientation: true };
+    const options = { quality: 1, base64: false, fixOrientation: true ,ratio: "4:3",pictureSize: "<200>x<200>"};
     const data = await takePicture(options);
     setDataImage(data);
     setModalPrev(true);

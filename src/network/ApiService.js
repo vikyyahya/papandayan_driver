@@ -8,6 +8,7 @@ export const GET_BY_PICKUP_PLANE = "api/driver/pickup/get-by-pickup-plan";
 export const GET_SHIPMENT_PLANE = "api/driver/shipment-plan/pickup";
 export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
 export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
+export const SUBMIT_POD = "api/driver/pod/submit";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
 export const DASHBOARD_POD = "api/driver/shipment-plan/dashboard";
 export const EDIT_ITEM_DRIVER = "api/driver/item/update";
@@ -110,6 +111,7 @@ export const postFormData = async (url, data, token) => {
   try {
     // getToken();
     var headers = {
+      Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: "Bearer " + token,
     };

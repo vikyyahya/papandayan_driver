@@ -91,8 +91,8 @@ export default function ListOrderPOD({ navigation, route }) {
     };
     console.log("params getPIsearchPickupPlanckup", params);
     setIsLoading(true);
-    await postData(BASE_URL + GET_SHIPMENT_PLANE, params, token).then(
-      (response) => {
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, params, token)
+      .then((response) => {
         console.log("response getPIsearchPickupPlanckup", response);
         setIsLoading(false);
         if (response.success == true) {
@@ -101,10 +101,10 @@ export default function ListOrderPOD({ navigation, route }) {
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
-      }
-    ).catch((error)=>{
-      setIsLoading(false);
-    });
+      })
+      .catch((error) => {
+        setIsLoading(false);
+      });
   };
 
   const getPickupPlan = async () => {
@@ -113,9 +113,12 @@ export default function ListOrderPOD({ navigation, route }) {
       filter: "",
       shipmentPlanId: data_pickup_plan.id,
     };
+    console.log("response getPIckup params", parans);
+    console.log("response getPIckup data_pickup_plan", data_pickup_plan);
+
     setIsLoading(true);
-    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token).then(
-      (response) => {
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token)
+      .then((response) => {
         console.log("response getPIckup", response);
         setIsLoading(false);
         if (response.success == true) {
@@ -124,10 +127,10 @@ export default function ListOrderPOD({ navigation, route }) {
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
-      }
-    ).catch((error)=>{
-      setIsLoading(false);
-    });
+      })
+      .catch((error) => {
+        setIsLoading(false);
+      });
   };
 
   const _onRefresh = React.useCallback(async () => {
@@ -138,8 +141,8 @@ export default function ListOrderPOD({ navigation, route }) {
       filter: "",
       shipmentPlanId: data_pickup_plan.id,
     };
-    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token).then(
-      (response) => {
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token)
+      .then((response) => {
         console.log("response getPIckup", response);
         setIsLoading(false);
         setIsRefresh(false);
@@ -149,29 +152,29 @@ export default function ListOrderPOD({ navigation, route }) {
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
-      }
-    ).catch((error)=>{
-      setIsLoading(false);
-      setIsRefresh(false);
-    });
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        setIsRefresh(false);
+      });
   }, [isRefresh]);
 
   const renderIconStatus = (data) => {
-    if (data.status_pick == "success") {
+    if (data == "success") {
       return (
         <Image
           style={styles.icon_check}
           source={require("../../../assets/image/ic_check.png")}
         ></Image>
       );
-    } else if (data.status_pick == "failed") {
+    } else if (data == "failed") {
       return (
         <Image
           style={styles.icon_check}
           source={require("../../../assets/image/ic_cross.png")}
         ></Image>
       );
-    } else if (data.status_pick == "repickup") {
+    } else if (data == "repickup") {
       return (
         <Image
           style={styles.icon_check}
@@ -189,13 +192,14 @@ export default function ListOrderPOD({ navigation, route }) {
   };
 
   const renderItem = ({ item, index }) => {
+    console.log("renderItem ", item);
     return (
       <TouchableOpacity
         onPress={() =>
           navigation.navigate("DetailOrderPOD", {
             id_pickup: item.id,
             status_pickup: item.status_pickup,
-            number: item.number
+            number: item.number,
           })
         }
         style={{
@@ -225,8 +229,8 @@ export default function ListOrderPOD({ navigation, route }) {
             alignItems: "flex-end",
           }}
         ></View>
-        {item.proof_of_pickup != null ? (
-          renderIconStatus(item.proof_of_pickup)
+        {item.proof_of_delivery != null ? (
+          renderIconStatus(item.proof_of_delivery.status_delivery)
         ) : (
           <Image
             style={styles.icon_check}

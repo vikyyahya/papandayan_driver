@@ -9,7 +9,7 @@ import { Picker } from "@react-native-picker/picker";
 import {
   BASE_URL,
   DETAIL_PICKUP_DRIVER,
-  SUBMIT_PICKUP_DRIVER,
+  SUBMIT_POD,
   ALLUNIT,
   SERVICE,
   EDIT_ITEM_DRIVER,
@@ -106,7 +106,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const [selectedValue, setSelectedValue] = React.useState("ble");
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
-  const { id_pickup, status_pickup ,number} = route.params;
+  const { id_pickup, status_pickup, number } = route.params;
   console.log("status_pickup", status_pickup);
 
   const refBottomSheet = useRef(null);
@@ -197,25 +197,26 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   };
 
   const submitPickup = async (value) => {
+    setModalVisible(false);
     var token = await getValue(TOKEN);
     var sts = "";
-    if (status == "sukses") {
+    if (status == "success") {
       sts = "success";
-    } else if (status == "gagal") {
+    } else if (status == "failed") {
       sts = "failed";
     } else {
-      sts = "updated";
+      sts = "re-delivery";
     }
     var params = {
-      statusPick: sts,
+      statusDelivery: sts,
       notes: notes,
-      driverPick: true,
       pickupId: id_pickup,
       picture: dataImage,
     };
     console.log("params", params);
+    console.log("params2", token);
     setIsLoading(true);
-    await postData(BASE_URL + SUBMIT_PICKUP_DRIVER, params, token)
+    await postData(BASE_URL + SUBMIT_POD, params, token)
       .then((response) => {
         console.log("response succes", response);
         if (response.success == true) {
@@ -240,7 +241,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
     console.log("uploadPhoto", data_img);
     form.append("picture", {
       uri: data_img.uri,
-      name: "tes",
+      name: data_img.name,
       type: "image/jpeg",
     });
 
@@ -249,7 +250,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
         console.log("uploadPhoto Picture", response);
         if (response.success == true) {
           console.log("uploadPhoto Picture", "true");
-          setDataImage(response.data.base_url + response.data.path);
+          setDataImage(response.data.path);
           // submitPickup
         }
       })
@@ -328,6 +329,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
 
   const onSuccess = () => {
     setIsModalSuccess(false);
+    navigation.goBack();
   };
 
   const onEdit = (index, data) => {
@@ -440,20 +442,55 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const onPicture = async (value) => {
     await setIsCustomCamera(false);
     await setUriImage(value.uri);
-    await setDataImage(value);
-    uploadPhoto(value);
+    var dataTmpImage = value;
+
+    for (var i = 0; i < 10; i++) {
+      console.log("ajska", i);
+      await ImageResizer.createResizedImage(
+        dataTmpImage.uri,
+        500,
+        500,
+        "JPEG",
+        50,
+        0,
+        undefined,
+        false
+      )
+        .then((response) => {
+          console.log("onPicture=>>>>>>>>", response);
+          dataTmpImage = response;
+          if (response.size < 10000) {
+            i = 10;
+            console.log("onPicture upload=>>>>>>>>", response);
+            uploadPhoto(dataTmpImage);
+          }
+          // response.uri is the URI of the new image that can now be displayed, uploaded...
+          // response.path is the path of the new image
+          // response.name is the name of the new image with the extension
+          // response.size is the size of the new image
+        })
+        .catch((err) => {
+          console.log("onPicture error=>>>>>>>>", err);
+
+          // Oops, something went wrong. Check that the filename is correct and
+          // inspect err to get more details.
+        });
+    }
+
     console.log("onPicture", value);
   };
+
+  const compress = (value) => {};
 
   const onCapture = () => {};
 
   const onChooseImage = async () => {
     let options = {
       mediaType: "photo",
-      maxWidth: 300,
-      maxHeight: 300,
+      maxWidth: 500,
+      maxHeight: 500,
       includeBase64: false,
-      quality: 0.5,
+      quality: 1,
     };
     launchImageLibrary(options, (response) => {
       console.log("Response = ", response);
@@ -539,7 +576,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   };
 
   const onPickup = (value) => {
-    if (status == "gagal") {
+    if (status == "re-delivery") {
       setModalVisible(true);
       // submitPickup();
     } else {
@@ -572,7 +609,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
             <Text
               style={[styles.text_14, { color: "#A80002", fontWeight: "bold" }]}
             >
-              Alasan Pembatalan
+              Alasan Pengiriman Ulang
             </Text>
 
             <View
@@ -587,6 +624,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
                 multiline={true}
                 numberOfLines={6}
                 value={reason}
+                textAlignVertical="top"
                 onChangeText={(v) => setReason(v)}
               ></TextInput>
             </View>
@@ -598,7 +636,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               }}
             >
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={() => submitPickup()}
                 style={{
                   backgroundColor: "#A80002",
                   paddingHorizontal: moderateScale(30),
@@ -752,7 +790,9 @@ export default function DetailOrderPOD({ navigation, route, props }) {
         <View style={{ flexDirection: "row", marginTop: verticalScale(8) }}>
           <Text style={[styles.text_10, { flex: 1 }]}>{item.name}</Text>
           <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_count}</Text>
-          <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_total}</Text>
+          <Text style={[styles.text_10, { flex: 0.6 }]}>
+            {item.weight + " " + item.weight_unit}
+          </Text>
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>
@@ -1047,9 +1087,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
           ></Image>
         </TouchableOpacity>
 
-        <Text style={styles.text_header}>
-          {number != null ? number : "-"}
-        </Text>
+        <Text style={styles.text_header}>{number != null ? number : "-"}</Text>
       </View>
       <ScrollView>
         <View style={styles.container}>
@@ -1161,7 +1199,11 @@ export default function DetailOrderPOD({ navigation, route, props }) {
             }}
           >
             {status_pickup == "success" ? (
-              <Text style={[styles.text_12,{marginVertical: verticalScale(10)}]}>Sukses</Text>
+              <Text
+                style={[styles.text_12, { marginVertical: verticalScale(10) }]}
+              >
+                Sukses
+              </Text>
             ) : (
               <Picker
                 style={styles.picker}
@@ -1174,12 +1216,12 @@ export default function DetailOrderPOD({ navigation, route, props }) {
                 onValueChange={(value, label) => onValueStatus(value, label)}
               >
                 <Picker.Item label="- Pilih -" value="" />
-                <Picker.Item key={0} label="sukses" value="sukses" />
-                <Picker.Item key={1} label="gagal" value="gagal" />
+                <Picker.Item key={0} label="Sukses" value="success" />
+                <Picker.Item key={1} label="Gagal" value="failed" />
                 <Picker.Item
                   key={2}
-                  label="ada perubahan"
-                  value="ada perubahan"
+                  label="Pengiriman Ulang"
+                  value="re-delivery"
                 />
               </Picker>
             )}

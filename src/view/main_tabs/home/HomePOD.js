@@ -49,8 +49,6 @@ export default function HomePOD({ navigation }) {
     return unsubscribe;
   }, []);
 
-  
-
   const goLogout = () => {
     saveData(TOKEN, "");
     saveData(LOGIN_STATUS, "0");
@@ -75,13 +73,15 @@ export default function HomePOD({ navigation }) {
 
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
+    let params = { startDate: "", endDate: "" };
 
-    await getData(BASE_URL + LIST_POD, token).then((response) => {
+    await postData(BASE_URL + LIST_POD, params, token).then((response) => {
       console.log("response getPIckup home1", response);
       setIsLoading(false);
       if (response.success == true) {
         setDataPickup(response.data);
         console.log("response getPIckup home2", response.data);
+        console.log("response getPIckup home3", response.data[0].pickups);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -138,6 +138,8 @@ export default function HomePOD({ navigation }) {
 
   const renderItem = ({ item, index }) => {
     console.log("data", item);
+    var date = moment(item.created_at).format("YYYY-MM-DD");
+
     return (
       <TouchableOpacity
         onPress={() =>
@@ -178,6 +180,9 @@ export default function HomePOD({ navigation }) {
           <Text style={styles.text_14_bold}>{item.number}</Text>
           <Text style={[styles.text_11, { color: "#262F56" }]}>
             Total {item.total_pickup_order} order pelanggan
+          </Text>
+          <Text style={[styles.text_11, { color: "#262F56" }]}>
+            {date}
           </Text>
         </View>
         <View
