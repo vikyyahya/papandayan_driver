@@ -117,6 +117,8 @@ export default function HomePOD({ navigation }) {
     });
   }, [isRefresh]);
 
+ 
+
   const renderListEmpty = () => {
     return (
       <View
@@ -137,7 +139,7 @@ export default function HomePOD({ navigation }) {
   };
 
   const renderItem = ({ item, index }) => {
-    console.log("data", item);
+    console.log("renderItem", item);
     var date = moment(item.created_at).format("YYYY-MM-DD");
 
     return (

@@ -6,6 +6,8 @@ import { saveData } from "../../../util/AsyncStorage";
 import {
   BASE_URL,
   PICKUP_DRIVER,
+  TOTAL_POP,
+  TOTAL_POD,
   PROFILE,
   getData,
   postData,
@@ -31,33 +33,129 @@ import {
 } from "react-native";
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
-const DATA = [{label: "Total Selesai Pickup"},{label:"Total Selesai Delivery"},{label:"Total Pembatalan"}]
 
 export default function HomeOne({ navigation }) {
   const [data_pickup, setDataPickup] = useState([]);
+  const [data_pod, setDataPod] = useState([]);
   const [selectedId, setSelectedId] = useState(0);
   const [name, setName] = useState("");
+  const [data_time, setDataTime] = useState("");
   const [isRefresh, setIsRefresh] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataDashboard, setdataDashboard] = useState([
+    { label: "Total Selesai Pickup", totalSuccess: 0, totalData: 0 },
+    { label: "Total Selesai Delivery", totalSuccess: 0, totalData: 0 },
+    { label: "Total Pembatalan Pickup", totalSuccess: 0, totalData: 0 },
+    { label: "Total Pembatalan Delivery", totalSuccess: 0, totalData: 0 },
+  ]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
       getPickupPlan();
       getDataProfile();
+      getDataTotalPOP();
+      getDataTotalPOD();
+      handleTime();
     });
     return unsubscribe;
   }, []);
+
   useEffect(() => {
     setIsLoading(true);
     getPickupPlan();
     getDataProfile();
+    handleTime();
   }, []);
+
+  const handleTime = () => {
+    var time = moment().format("HH");
+    if (time <= 10) {
+      setDataTime("pagi");
+    } else if (time >= 11 && time <= 14) {
+      setDataTime("siang");
+    } else if (time >= 15 && time <= 17) {
+      setDataTime("sore");
+    } else if (time >= 18) {
+      setDataTime("malam");
+    }
+  };
 
   const goLogout = () => {
     saveData(TOKEN, "");
     saveData(LOGIN_STATUS, "0");
     navigation.replace("Login");
+  };
+
+  const resetDataDashboard = () => {
+    setdataDashboard([
+      { label: "Total Selesai Pickup", totalSuccess: 0, totalData: 0 },
+      { label: "Total Selesai Delivery", totalSuccess: 0, totalData: 0 },
+      { label: "Total Pembatalan Pickup", totalSuccess: 0, totalData: 0 },
+      { label: "Total Pembatalan Delivery", totalSuccess: 0, totalData: 0 },
+    ]);
+  };
+
+  const getDataTotalPOP = async () => {
+    let token = await getValue(TOKEN);
+    var params = {
+      startDate: moment().format("YYYY-MM-DD"),
+      endDate: moment().format("YYYY-MM-DD"),
+    };
+
+    await postData(BASE_URL + TOTAL_POP, params, token).then((response) => {
+      console.log("response getDataTotalPOP", response);
+      if (response.success == true) {
+        var tmpLength = 0;
+        var tmpSuccess = 0;
+        var tmpCancelled = 0;
+        var tmpDataDashboard = dataDashboard;
+        response.data.map((data) => {
+          tmpLength += data.total_order;
+          tmpSuccess += data.total_draft_pop;
+          tmpCancelled += data.total_cancelled_pop;
+        });
+        tmpDataDashboard[0].totalData = tmpLength;
+        tmpDataDashboard[0].totalSuccess = tmpSuccess;
+        tmpDataDashboard[2].totalSuccess = tmpCancelled;
+        setdataDashboard(tmpDataDashboard);
+        setTotalPOP(tmpLength);
+      } else if (response.message == "Unauthenticated.") {
+        goLogout();
+      }
+    });
+  };
+
+  const getDataTotalPOD = async () => {
+    let token = await getValue(TOKEN);
+    var params = {
+      startDate: moment().format("YYYY-MM-DD"),
+      endDate: moment().format("YYYY-MM-DD"),
+      // startDate:"",
+      // endDate: "",
+    };
+    console.log("response getDataTotalPOD", params);
+
+    await postData(BASE_URL + TOTAL_POD, params, token).then((response) => {
+      console.log("response getDataTotalPOD", response);
+      if (response.success == true) {
+        var tmpLength = 0;
+        var tmpSuccess = 0;
+        var tmpCancelled = 0;
+        var tmpDataDashboard = dataDashboard;
+        response.data.map((data) => {
+          tmpLength += data.total_order;
+          tmpSuccess += data.total_draft_pod;
+        });
+        tmpDataDashboard[1].totalData = tmpLength;
+        tmpDataDashboard[1].totalSuccess = tmpSuccess;
+        tmpDataDashboard[3].totalSuccess = tmpCancelled;
+        setdataDashboard(tmpDataDashboard);
+        setTotalPOD(tmpLength);
+      } else if (response.message == "Unauthenticated.") {
+        goLogout();
+      }
+    });
   };
 
   const getDataProfile = async () => {
@@ -78,7 +176,6 @@ export default function HomeOne({ navigation }) {
 
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
       perPage: 10,
       id: "",
@@ -105,6 +202,32 @@ export default function HomeOne({ navigation }) {
     });
   };
 
+  const getPod = async () => {
+    var token = await getValue(TOKEN);
+    var parans = {
+      filter: "",
+      shipmentPlanId: data_pickup_plan.id,
+    };
+    console.log("response getPIckup params", parans);
+    console.log("response getPIckup data_pickup_plan", data_pickup_plan);
+
+    setIsLoading(true);
+    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token)
+      .then((response) => {
+        console.log("response getPIckup", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setDataPickup(response.data.data);
+          console.log("response getPIckup", response.data.data);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      })
+      .catch((error) => {
+        setIsLoading(false);
+      });
+  };
+
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
     var token = await getValue(TOKEN);
@@ -123,6 +246,9 @@ export default function HomeOne({ navigation }) {
         order: "",
       },
     };
+    await resetDataDashboard();
+    await getDataTotalPOP();
+    await getDataTotalPOD();
     await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
       console.log("response getPIckup home", response);
       if (response.success == true) {
@@ -200,7 +326,10 @@ export default function HomeOne({ navigation }) {
           }}
         >
           <Text style={styles.text_12}>
-            <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/3
+            <Text style={[styles.text_14_bold, { color: "#000000" }]}>
+              {item.totalSuccess}
+            </Text>
+            /{item.totalData}
           </Text>
         </View>
         <Image
@@ -223,11 +352,20 @@ export default function HomeOne({ navigation }) {
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={[styles.text_16]}>
-            Selamat pagi
+            Selamat {data_time}
             <Text style={styles.text_16_bold}> {name}</Text>
           </Text>
           <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>
-            Hari ini ada {data_pickup.length} Pickup Plan untuk kamu
+            Hari ini anda sudah menyelesaikan{" "}
+            <Text style={[styles.text_14_bold, { color: "#1EB448" }]}>
+              {dataDashboard[0].totalSuccess} Pickup Plan{" "}
+            </Text>
+            dan sisa{" "}
+            <Text style={[styles.text_14_bold, { color: "#A80002" }]}>
+              {" "}
+              {dataDashboard[3].totalSuccess} Delivery Plan{" "}
+            </Text>{" "}
+            yang belum diselesaikan.
           </Text>
         </View>
       </View>
@@ -256,8 +394,8 @@ export default function HomeOne({ navigation }) {
           <Image
             source={require("../../../assets/image/ic_pickup_green.png")}
             style={{
-              width: moderateScale(100),
-              height: moderateScale(100),
+              width: moderateScale(80),
+              height: moderateScale(80),
               resizeMode: "stretch",
             }}
           ></Image>
@@ -268,7 +406,6 @@ export default function HomeOne({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate("HomePOD")}
-
           style={{
             flex: 1,
             backgroundColor: "#FFFFFF",
@@ -284,8 +421,8 @@ export default function HomeOne({ navigation }) {
           <Image
             source={require("../../../assets/image/ic_delivery_green.png")}
             style={{
-              width: moderateScale(100),
-              height: moderateScale(100),
+              width: moderateScale(80),
+              height: moderateScale(80),
               resizeMode: "stretch",
             }}
           ></Image>
@@ -306,7 +443,7 @@ export default function HomeOne({ navigation }) {
       >
         <Text style={styles.text_14_bold}>Hari Ini</Text>
         <FlatList
-          data={DATA}
+          data={dataDashboard}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           extraData={selectedId}

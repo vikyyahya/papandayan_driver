@@ -77,7 +77,7 @@ export default function Home({ navigation }) {
     var token = await getValue(TOKEN);
     var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
-      perPage: 10,
+      perPage: 20,
       id: "",
       page: 1,
       startDate: "",
@@ -107,7 +107,7 @@ export default function Home({ navigation }) {
     var token = await getValue(TOKEN);
     var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
-      perPage: 10,
+      perPage: 20,
       id: "",
       page: 1,
       startDate: "",
