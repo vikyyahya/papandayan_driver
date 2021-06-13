@@ -32,24 +32,44 @@ import {
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 
-export default function Home({ navigation }) {
+export default function Home({ navigation, route }) {
   const [data_pickup, setDataPickup] = useState([]);
   const [selectedId, setSelectedId] = useState(0);
   const [name, setName] = useState("");
+  const [data_time, setDataTime] = useState("");
   const [isRefresh, setIsRefresh] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
-      getPickupPlan();
+      if (route.params != undefined) {
+        const { status } = route.params;
+        getPickupPlan(status);
+      }else{
+        getPickupPlan(false);
+      }
       getDataProfile();
+      handleTime();
     });
     return unsubscribe;
   }, []);
   useEffect(() => {
     setIsLoading(true);
   }, []);
+
+  const handleTime = () => {
+    var time = moment().format("HH");
+    if (time <= 10) {
+      setDataTime("pagi");
+    } else if (time >= 11 && time <= 14) {
+      setDataTime("siang");
+    } else if (time >= 15 && time <= 17) {
+      setDataTime("sore");
+    } else if (time >= 18) {
+      setDataTime("malam");
+    }
+  };
 
   const goLogout = () => {
     saveData(TOKEN, "");
@@ -73,15 +93,15 @@ export default function Home({ navigation }) {
     });
   };
 
-  const getPickupPlan = async () => {
+  const getPickupPlan = async (isDate) => {
     var token = await getValue(TOKEN);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
+    var date = moment().format("YYYY-MM-DD");
     var parans = {
       perPage: 20,
       id: "",
       page: 1,
-      startDate: "",
-      endDate: "",
+      startDate: isDate == true ? date : "",
+      endDate: isDate == true ? date : "",
       licenseNumber: "",
       status: "",
       vehicleType: "",
@@ -157,7 +177,10 @@ export default function Home({ navigation }) {
     return (
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate("ListOrder", { data_pickup_plan: item , number : item.number})
+          navigation.navigate("ListOrder", {
+            data_pickup_plan: item,
+            number: item.number,
+          })
         }
         style={{
           flexDirection: "row",
@@ -195,9 +218,7 @@ export default function Home({ navigation }) {
           <Text style={[styles.text_11, { color: "#262F56" }]}>
             Total {item.total_pickup_order} order pelanggan
           </Text>
-          <Text style={[styles.text_11, { color: "#262F56" }]}>
-            {date}
-          </Text>
+          <Text style={[styles.text_11, { color: "#262F56" }]}>{date}</Text>
         </View>
         <View
           style={{
@@ -235,7 +256,7 @@ export default function Home({ navigation }) {
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={[styles.text_16]}>
-            Selamat pagi
+            Selamat {data_time}
             <Text style={styles.text_16_bold}> {name}</Text>
           </Text>
           <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>

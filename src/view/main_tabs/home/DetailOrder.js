@@ -13,13 +13,19 @@ import {
   ALLUNIT,
   SERVICE,
   EDIT_ITEM_DRIVER,
+  DELETE_ITEM_DRIVER,
+  CREATE_ITEM_DRIVER,
   UPLOAD_PICTURE_POP,
   postData,
   getData,
   postFormData,
 } from "../../../network/ApiService";
 import BottomSheet from "react-native-bottomsheet-reanimated";
-import { ModalWarning, ModalSuccess } from "../../../util/CustModal";
+import {
+  ModalWarning,
+  ModalSuccess,
+  ModalOptions,
+} from "../../../util/CustModal";
 import { Loading } from "../../../util/Loading";
 import { CustomCamera } from "../../../util/CustomCamera";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -76,6 +82,7 @@ export default function DetailOrder({ navigation, route, props }) {
   const [uriImage, setUriImage] = useState("");
 
   const [dataItemsTemporary, setDataTemp] = useState({
+    id: "",
     unit_id: "",
     unit_label: "",
     service_id: "",
@@ -83,10 +90,16 @@ export default function DetailOrder({ navigation, route, props }) {
     name: "",
     unit_total: "",
     unit_count: "",
+    unit: "buah",
+    weight: "",
+    volume: "",
+    type: "",
   });
+  const [typeForm, setTypeForm] = useState("");
 
   const [isModalSuccess, setIsModalSuccess] = useState(false);
   const [isModalWarning, setIsModalWarning] = useState(false);
+  const [isModalOptions, setIsModalOptions] = useState(false);
   const [messageModalWarning, setMessageModalWarning] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCustomCamera, setIsCustomCamera] = useState(false);
@@ -107,7 +120,6 @@ export default function DetailOrder({ navigation, route, props }) {
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
   const { id_pickup, status_pickup } = route.params;
-  console.log("status_pickup", status_pickup);
 
   const refBottomSheet = useRef(null);
 
@@ -150,7 +162,7 @@ export default function DetailOrder({ navigation, route, props }) {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
       getPickupPlan();
-      // getAllUnit();
+      getAllUnit();
       getAllServices();
     });
     return unsubscribe;
@@ -172,28 +184,62 @@ export default function DetailOrder({ navigation, route, props }) {
     refBottomSheet.current.snapTo(0);
     setIsLoading(true);
     var params = {
-      unitId: dataItemsTemporary.unit_id,
-      itemId: id_pickup,
+      itemId: dataItemsTemporary.id,
       name: dataItemsTemporary.name,
       total: dataItemsTemporary.unit_total,
       count: dataItemsTemporary.unit_count,
       serviceId: dataItemsTemporary.service_id,
+      weight: dataItemsTemporary.weight,
+      volume: dataItemsTemporary.volume,
+      type: dataItemsTemporary.type,
+      unit: dataItemsTemporary.unit,
     };
-    await postData(BASE_URL + EDIT_ITEM_DRIVER, params, token)
-      .then((response) => {
-        console.log("response  onSaveItem", response);
-        if (response.success == true) {
-          setIsLoading(false);
-          // setIsModalSuccess(true)
-        } else {
-          setIsLoading(false);
-          setIsModalWarning(true);
-          setMessageModalWarning(response.message);
-        }
-      })
-      .catch((error) => {
-        console.log("response error", error);
-      });
+    console.log("Params  onSaveItem", params);
+    if (typeForm == "add") {
+      params = {
+        pickupId: id_pickup,
+        name: dataItemsTemporary.name,
+        weight: dataItemsTemporary.weight,
+        volume: dataItemsTemporary.volume,
+        type: dataItemsTemporary.type,
+        count: dataItemsTemporary.unit_count,
+        unit: dataItemsTemporary.unit,
+        serviceId: dataItemsTemporary.service_id,
+      };
+      await postData(BASE_URL + CREATE_ITEM_DRIVER, params, token)
+        .then((response) => {
+          console.log("response CREATE_ITEM_DRIVER", response);
+          if (response.success == true) {
+            setIsLoading(false);
+            // setIsModalSuccess(true)
+            getPickupPlan();
+          } else {
+            setIsLoading(false);
+            setIsModalWarning(true);
+            setMessageModalWarning(response.message);
+          }
+        })
+        .catch((error) => {
+          console.log("response error", error);
+        });
+    } else {
+      await postData(BASE_URL + EDIT_ITEM_DRIVER, params, token)
+        .then((response) => {
+          console.log("response  onSaveItem", response);
+          if (response.success == true) {
+            setIsLoading(false);
+            // setIsModalSuccess(true)
+            getPickupPlan();
+          } else {
+            setIsLoading(false);
+            setIsModalWarning(true);
+            setMessageModalWarning(response.message);
+          }
+        })
+        .catch((error) => {
+          console.log("response error", error);
+        });
+    }
   };
 
   const submitPickup = async (value) => {
@@ -262,7 +308,6 @@ export default function DetailOrder({ navigation, route, props }) {
     var token = await getValue(TOKEN);
     setIsLoading(true);
     console.log("response token", token);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
     var params = {
       pickupId: id_pickup,
     };
@@ -295,17 +340,24 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const getAllUnit = async () => {
-    var token = await getValue(TOKEN);
-    await getData(BASE_URL + ALLUNIT, token).then((response) => {
-      console.log("response getAllUnit", response);
-      if (response.success == true) {
-        let value = response.data;
-        setUnits(value);
-        // this.setState({ picker: true });
-      } else if (response.message == "Unauthenticated.") {
-        // this.props.navigation.replace("Login");
-      }
-    });
+    var units = [
+      { id: "barang", name: "barang" },
+      { id: "motor", name: "motor" },
+      { id: "mobil", name: "mobil" },
+    ];
+    setUnits(units);
+
+    // var token = await getValue(TOKEN);
+    // await getData(BASE_URL + ALLUNIT, token).then((response) => {
+    //   console.log("response getAllUnit", response);
+    //   if (response.success == true) {
+    //     let value = response.data;
+    //     setUnits(value);
+    //     // this.setState({ picker: true });
+    //   } else if (response.message == "Unauthenticated.") {
+    //     // this.props.navigation.replace("Login");
+    //   }
+    // });
   };
 
   const getAllServices = async () => {
@@ -329,21 +381,80 @@ export default function DetailOrder({ navigation, route, props }) {
   const onSuccess = () => {
     setIsModalSuccess(false);
     navigation.goBack();
-
   };
 
   const onEdit = (index, data) => {
     refBottomSheet.current.snapTo(index);
     console.log("data onEdit", data);
+    setTypeForm("edit");
     setDataTemp({
+      id: data.id,
       unit_id: "",
       unit_label: "",
       service_id: data.service_id,
-      service_label: data.service.name,
+      service_label: data.service == null ? "" : data.service.name,
       name: data.name,
       unit_total: data.unit_total,
       unit_count: data.unit_count,
+      unit: data.unit,
+      weight: data.weight,
+      type: data.type,
+      volume: data.volume,
     });
+  };
+
+  const onAddItem = () => {
+    refBottomSheet.current.snapTo(2);
+    setTypeForm("add");
+    setDataTemp({
+      id: "",
+      unit_id: "",
+      unit_label: "",
+      service_id: "",
+      service_label: "",
+      name: "",
+      unit_total: "",
+      unit_count: "",
+      unit: "",
+      weight: "",
+      type: "",
+      volume: "",
+    });
+  };
+
+  const onSelectDeleted = (index, data) => {
+    console.log("onSelectDeleted", data);
+    setDataTemp({
+      id: data.id,
+      unit_id: "",
+      unit_label: "",
+      service_id: data.service_id,
+      service_label: data.service == null ? "" : data.service.name,
+      name: data.name,
+      unit_total: data.unit_total,
+      unit_count: data.unit_count,
+      unit: data.unit,
+      weight: data.weight,
+      type: data.type,
+      volume: data.volume,
+    });
+    setIsModalOptions(true);
+  };
+
+  const onDeleted = async (index, data) => {
+    var token = await getValue(TOKEN);
+    var params = { itemId: dataItemsTemporary.id };
+    console.log("onDeleted params", params);
+
+    await postData(BASE_URL + DELETE_ITEM_DRIVER, params, token)
+      .then((response) => {
+        console.log("onDeleted ", response);
+        setIsModalOptions(false);
+        getPickupPlan();
+      })
+      .catch((error) => {
+        console.log("onDeleted error", error);
+      });
   };
 
   // const onSaveItem = ()=>{
@@ -354,6 +465,13 @@ export default function DetailOrder({ navigation, route, props }) {
   // }
 
   const selectUnits = (i) => {
+    setIndexSelected(i);
+    setItemModal(units);
+    setTypeModal("unit");
+    setModalUnitVisible(true);
+  };
+
+  const selectType = (i) => {
     setIndexSelected(i);
     setItemModal(units);
     setTypeModal("unit");
@@ -371,7 +489,8 @@ export default function DetailOrder({ navigation, route, props }) {
     if (typeModal == "unit") {
       var data = { ...dataItemsTemporary };
       data = { ...data, unit_label: value.name };
-      data = { ...data, unit_id: value.id };
+      // data = { ...data, unit_id: value.id };
+      data = { ...data, type: value.name };
       setDataTemp(data);
       setModalUnitVisible(false);
     } else {
@@ -431,7 +550,19 @@ export default function DetailOrder({ navigation, route, props }) {
 
   const onTotalUnitChange = (value) => {
     var data = { ...dataItemsTemporary };
-    data = { ...data, unit_total: value };
+    data = { ...data, weight: value };
+    setDataTemp(data);
+  };
+
+  const onUnitChange = (value) => {
+    var data = { ...dataItemsTemporary };
+    data = { ...data, unit: value };
+    setDataTemp(data);
+  };
+
+  const onVolumeChange = (value) => {
+    var data = { ...dataItemsTemporary };
+    data = { ...data, volume: value };
     setDataTemp(data);
   };
 
@@ -658,7 +789,7 @@ export default function DetailOrder({ navigation, route, props }) {
   const renderModalUnit = (type) => {
     if (typeModal === "unit") {
       return (
-        <View style={styles.centeredView}>
+        <TouchableOpacity style={styles.centeredView}>
           <Modal
             animationType="fade"
             transparent={true}
@@ -687,7 +818,7 @@ export default function DetailOrder({ navigation, route, props }) {
               </View>
             </View>
           </Modal>
-        </View>
+        </TouchableOpacity>
       );
     } else {
       return (
@@ -785,7 +916,14 @@ export default function DetailOrder({ navigation, route, props }) {
         <View style={{ flexDirection: "row", marginTop: verticalScale(8) }}>
           <Text style={[styles.text_10, { flex: 1 }]}>{item.name}</Text>
           <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_count}</Text>
-          <Text style={[styles.text_10, { flex: 0.6 }]}>{item.weight + " " + item.weight_unit}</Text>
+          <Text
+            style={[
+              styles.text_10,
+              { flex: 0.6, marginLeft: moderateScale(5) },
+            ]}
+          >
+            {item.weight + " " + item.weight_unit}
+          </Text>
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>
@@ -795,9 +933,34 @@ export default function DetailOrder({ navigation, route, props }) {
               source={require("../../../assets/image/ic_edit.png")}
             ></Image>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => onSelectDeleted(index, item)}>
+            <Image
+              style={{ width: moderateScale(25), height: moderateScale(20) }}
+              source={require("../../../assets/image/del.png")}
+            ></Image>
+          </TouchableOpacity>
         </View>
         <View style={styles.line}></View>
       </View>
+    );
+  };
+
+  const renderFooter = () => {
+    return (
+      <TouchableOpacity
+        style={{ flexDirection: "row", marginTop: moderateScale(10) }}
+        onPress={() => onAddItem()}
+      >
+        <Image
+          style={{
+            height: moderateScale(15),
+            width: moderateScale(15),
+            marginRight: moderateScale(8),
+          }}
+          source={require("../../../assets/image/ic_plus.png")}
+        ></Image>
+        <Text>Tambah Item</Text>
+      </TouchableOpacity>
     );
   };
 
@@ -855,27 +1018,49 @@ export default function DetailOrder({ navigation, route, props }) {
               placeholder="Nama Barang"
               onChangeText={(v) => onNameItemChange(v)}
             ></TextInput>
-            <Text style={styles.text_10}>Jumlah Barang</Text>
-            <TextInput
-              paddingLeft={moderateScale(12)}
-              keyboardType="default"
-              value={dataItemsTemporary.unit_count}
-              style={{
-                backgroundColor: "#F1F1F1",
-                borderRadius: moderateScale(12),
-                fontSize: 12,
-                marginTop: verticalScale(5),
-              }}
-              placeholder="Jumlah Barang"
-              onChangeText={(value) => onTotalItemChange(value)}
-            ></TextInput>
+
             <View style={{ flexDirection: "row" }}>
               <View style={{ flex: 1, marginRight: moderateScale(5) }}>
-                <Text style={styles.text_10}>Berat Total</Text>
+                <Text style={styles.text_10}>Jumlah Barang</Text>
+                <TextInput
+                  paddingLeft={moderateScale(12)}
+                  keyboardType="default"
+                  value={dataItemsTemporary.unit_count}
+                  style={{
+                    backgroundColor: "#F1F1F1",
+                    borderRadius: moderateScale(12),
+                    fontSize: 12,
+                    marginTop: verticalScale(5),
+                  }}
+                  placeholder="Jumlah Barang"
+                  onChangeText={(value) => onTotalItemChange(value)}
+                ></TextInput>
+              </View>
+
+              <View style={{ flex: 1, marginLeft: moderateScale(5) }}>
+                <Text style={styles.text_10}>Satuan</Text>
+                <TextInput
+                  paddingLeft={moderateScale(12)}
+                  value={dataItemsTemporary.unit}
+                  style={{
+                    backgroundColor: "#F1F1F1",
+                    borderRadius: moderateScale(12),
+                    fontSize: 12,
+                    marginTop: verticalScale(5),
+                  }}
+                  placeholder="satuan"
+                  onChangeText={(value) => onUnitChange(value)}
+                ></TextInput>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ flex: 1, marginRight: moderateScale(5) }}>
+                <Text style={styles.text_10}>Berat Total (Kg)</Text>
                 <TextInput
                   paddingLeft={moderateScale(12)}
                   keyboardType="number-pad"
-                  value={dataItemsTemporary.unit_total}
+                  value={dataItemsTemporary.weight}
                   style={{
                     backgroundColor: "#F1F1F1",
                     borderRadius: moderateScale(12),
@@ -885,18 +1070,22 @@ export default function DetailOrder({ navigation, route, props }) {
                   onChangeText={(value) => onTotalUnitChange(value)}
                 ></TextInput>
               </View>
+            </View>
 
-              <View style={{ flex: 1, marginLeft: moderateScale(5) }}>
-                <Text style={styles.text_10}>Satuan</Text>
-                <View
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>Jenis Barang</Text>
+                <TouchableOpacity
+                  onPress={() => selectType(0)}
                   style={{
                     flexDirection: "row",
                     flex: 1,
                     alignItems: "center",
                     backgroundColor: "#F1F1F1",
-                    width: moderateScale(90),
-                    paddingHorizontal: moderateScale(5),
+                    paddingHorizontal: moderateScale(10),
                     borderRadius: moderateScale(12),
+                    marginTop: verticalScale(5),
+                    marginRight: moderateScale(10),
                   }}
                 >
                   <Text
@@ -909,11 +1098,11 @@ export default function DetailOrder({ navigation, route, props }) {
                       },
                     ]}
                   >
-                    {dataItemsTemporary.unit_label == ""
-                      ? "satuan"
-                      : dataItemsTemporary.unit_label}
+                    {dataItemsTemporary.type == ""
+                      ? "Jenis Barang"
+                      : dataItemsTemporary.type}
                   </Text>
-                  <TouchableOpacity onPress={() => selectUnits(0)}>
+                  <View style={{ position: "absolute", right: 10 }}>
                     <Image
                       style={{
                         height: verticalScale(16),
@@ -922,8 +1111,25 @@ export default function DetailOrder({ navigation, route, props }) {
                       }}
                       source={require("../../../assets/image/ic_arrow_down.png")}
                     ></Image>
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text_10}>Volume</Text>
+                <TextInput
+                  paddingLeft={moderateScale(12)}
+                  keyboardType="default"
+                  value={dataItemsTemporary.volume}
+                  style={{
+                    backgroundColor: "#F1F1F1",
+                    borderRadius: moderateScale(12),
+                    fontSize: 12,
+                    marginTop: verticalScale(5),
+                  }}
+                  placeholder="Volume Barang"
+                  onChangeText={(value) => onVolumeChange(value)}
+                ></TextInput>
               </View>
             </View>
 
@@ -1163,9 +1369,19 @@ export default function DetailOrder({ navigation, route, props }) {
               <Text style={[styles.text_10, { flex: 1 }]}>Nama barang</Text>
               <Text style={[styles.text_10, { flex: 0.6 }]}>Jumlah</Text>
               <Text style={[styles.text_10, { flex: 0.6 }]}>Berat Total</Text>
-              <Text style={[styles.text_10, { flex: 0.8 }]}>Req Layanan</Text>
+              <Text
+                style={[
+                  styles.text_10,
+                  { flex: 0.8, marginLeft: moderateScale(5) },
+                ]}
+              >
+                Req Layanan
+              </Text>
               <View
                 style={{ width: moderateScale(15), height: moderateScale(15) }}
+              ></View>
+              <View
+                style={{ width: moderateScale(25), height: moderateScale(15) }}
               ></View>
             </View>
 
@@ -1174,6 +1390,7 @@ export default function DetailOrder({ navigation, route, props }) {
               renderItem={renderItem}
               keyExtractor={(item, index) => index.toString()}
               extraData={selectedId}
+              ListFooterComponent={() => renderFooter()}
             />
           </View>
           <View
@@ -1194,7 +1411,11 @@ export default function DetailOrder({ navigation, route, props }) {
             }}
           >
             {status_pickup == "success" ? (
-              <Text style={[styles.text_12,{marginVertical: verticalScale(10)}]}>Sukses</Text>
+              <Text
+                style={[styles.text_12, { marginVertical: verticalScale(10) }]}
+              >
+                Sukses
+              </Text>
             ) : (
               <Picker
                 style={styles.picker}
@@ -1292,6 +1513,14 @@ export default function DetailOrder({ navigation, route, props }) {
         message={messageModalWarning}
         onOk={() => onOkEdit()}
       ></ModalWarning>
+
+      <ModalOptions
+        visible={isModalOptions}
+        message={"Yakin ingin menghapus item ini?"}
+        onOk={() => onDeleted()}
+        onNo={() => setIsModalOptions(false)}
+      ></ModalOptions>
+
       <CustomCamera
         modalVisible={isCustomCamera}
         initialProps={props}

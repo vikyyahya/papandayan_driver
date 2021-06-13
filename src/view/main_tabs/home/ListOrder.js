@@ -37,10 +37,10 @@ export default function ListOrder({ navigation, route }) {
   const [selectedId, setSelectedId] = useState(0);
   const [kg, setKg] = useState(0);
   const [volume, setVolume] = useState(0);
+  const [searchPop, setSearchPop] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { data_pickup_plan ,number} = route.params;
+  const { data_pickup_plan, number } = route.params;
   const [isRefresh, setIsRefresh] = useState(false);
-
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -69,7 +69,6 @@ export default function ListOrder({ navigation, route }) {
     setIsLoading(true);
     await postData(BASE_URL + TOTAL_VOL_DRIVER, parans, token)
       .then((response) => {
-        console.log("response TOTAL_VOL_DRIVER", response);
         setIsLoading(false);
         if (response.success == true) {
           setKg(response.data.kilo);
@@ -82,12 +81,43 @@ export default function ListOrder({ navigation, route }) {
       });
   };
 
+  const searchPickupPlan = async ()=>{
+    var token = await getValue(TOKEN);
+    var params = {
+      perPage: 20,
+      page: 1,
+      id: "",
+      name: searchPop,
+      city: "",
+      district: "",
+      village: "",
+      street: "",
+      picktime: "",
+      sort: "",
+      pickupPlanId: data_pickup_plan.id,
+    };
+    console.log("Param", params);
+
+    setIsLoading(true);
+    await postData(BASE_URL + GET_BY_PICKUP_PLANE, params, token).then(
+      (response) => {
+        console.log("response getPIckup1", response);
+        setIsLoading(false);
+        if (response.success == true) {
+          setDataPickup(response.data.data);
+          console.log("response getPIckup2", response.data.data);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      }
+    );
+  }
+
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
     console.log("response token", token);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
     var parans = {
-      perPage: 10,
+      perPage: 20,
       page: 1,
       id: "",
       name: "",
@@ -187,7 +217,10 @@ export default function ListOrder({ navigation, route }) {
         onPress={() =>
           navigation.navigate("DetailOrder", {
             id_pickup: item.id,
-            status_pickup: item.proof_of_pickup == null ? "" : item.proof_of_pickup.status_pick
+            status_pickup:
+              item.proof_of_pickup == null
+                ? ""
+                : item.proof_of_pickup.status_pick,
           })
         }
         style={{
@@ -274,7 +307,16 @@ export default function ListOrder({ navigation, route }) {
               source={require("../../../assets/image/ic_search.png")}
             ></Image>
 
-            <TextInput placeholder="Cari Order"></TextInput>
+            <TextInput
+              style={{ width: "100%" }}
+              placeholder="Cari Order"
+              value={searchPop}
+              onChangeText={(value) => setSearchPop(value)}
+              multiline={false}
+              returnKeyType={"done"}
+              onSubmitEditing={(event) => searchPickupPlan()}
+
+            ></TextInput>
           </View>
 
           <View

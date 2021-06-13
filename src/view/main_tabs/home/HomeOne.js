@@ -119,7 +119,6 @@ export default function HomeOne({ navigation }) {
         tmpDataDashboard[0].totalSuccess = tmpSuccess;
         tmpDataDashboard[2].totalSuccess = tmpCancelled;
         setdataDashboard(tmpDataDashboard);
-        setTotalPOP(tmpLength);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -151,7 +150,6 @@ export default function HomeOne({ navigation }) {
         tmpDataDashboard[1].totalSuccess = tmpSuccess;
         tmpDataDashboard[3].totalSuccess = tmpCancelled;
         setdataDashboard(tmpDataDashboard);
-        setTotalPOD(tmpLength);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -202,31 +200,6 @@ export default function HomeOne({ navigation }) {
     });
   };
 
-  const getPod = async () => {
-    var token = await getValue(TOKEN);
-    var parans = {
-      filter: "",
-      shipmentPlanId: data_pickup_plan.id,
-    };
-    console.log("response getPIckup params", parans);
-    console.log("response getPIckup data_pickup_plan", data_pickup_plan);
-
-    setIsLoading(true);
-    await postData(BASE_URL + GET_SHIPMENT_PLANE, parans, token)
-      .then((response) => {
-        console.log("response getPIckup", response);
-        setIsLoading(false);
-        if (response.success == true) {
-          setDataPickup(response.data.data);
-          console.log("response getPIckup", response.data.data);
-        } else if (response.message == "Unauthenticated.") {
-          goLogout();
-        }
-      })
-      .catch((error) => {
-        setIsLoading(false);
-      });
-  };
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
@@ -260,6 +233,14 @@ export default function HomeOne({ navigation }) {
     });
   }, [isRefresh]);
 
+  const onSelectDashboard = (index) =>{
+    if(index == 0 ) {
+      navigation.navigate("POP",{
+        status : true
+      })
+    }
+  }
+
   const renderListEmpty = () => {
     return (
       <View
@@ -280,9 +261,9 @@ export default function HomeOne({ navigation }) {
   };
 
   const renderItem = ({ item, index }) => {
-    console.log("data", item);
     return (
       <TouchableOpacity
+      onPress={()=> onSelectDashboard(index)}
         style={{
           flexDirection: "row",
           height: verticalScale(90),

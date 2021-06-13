@@ -83,6 +83,82 @@ export const ModalSuccess = ({ visible, message, onOk }) => {
   }
 };
 
+export const ModalOptions = ({ visible, message, onOk, onNo }) => {
+  if (visible) {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={visible}
+        onRequestClose={() => {
+          Alert.alert("Modal has been closed.");
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Image
+              style={styles.ic_alert}
+              source={require("../assets/image/question.png")}
+            ></Image>
+            <Text
+              style={{
+                marginTop: verticalScale(25),
+                marginBottom: verticalScale(25),
+                fontSize: 14,
+                textAlign: "center",
+                fontFamily: "Montserrat-Bold",
+              }}
+            >
+              {message}
+            </Text>
+
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                style={{
+                  height: verticalScale(40),
+                  width: width / 3,
+                  backgroundColor: "#A80002",
+                  borderRadius: moderateScale(20),
+                  marginRight: moderateScale(5),
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 3,
+                  elevation: 2,
+                }}
+                onPress={() => {
+                  onNo();
+                }}
+              >
+                <Text style={styles.textStyle}>Tidak</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  height: verticalScale(40),
+                  width: width / 3,
+                  backgroundColor: "#A80002",
+                  borderRadius: moderateScale(20),
+                  marginRight: moderateScale(5),
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 3,
+                  elevation: 2,
+                }}
+                onPress={() => {
+                  onOk();
+                }}
+              >
+                <Text style={styles.textStyle}>Ya</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  } else {
+    return <View></View>;
+  }
+};
+
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,

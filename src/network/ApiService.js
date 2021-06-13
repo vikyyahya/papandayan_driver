@@ -14,6 +14,8 @@ export const SUBMIT_POD = "api/driver/pod/submit";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
 export const DASHBOARD_POD = "api/driver/shipment-plan/dashboard";
 export const EDIT_ITEM_DRIVER = "api/driver/item/update";
+export const DELETE_ITEM_DRIVER = "api/driver/item/delete";
+export const CREATE_ITEM_DRIVER = "api/driver/item/create";
 export const UPLOAD_PICTURE_POP = "api/tracking/upload-picture";
 
 export const REGISTER = "api/register";
