@@ -73,7 +73,14 @@ export default function HomePOD({ navigation }) {
 
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
-    let params = { startDate: "", endDate: "" };
+    var date = moment().format("YYYY-MM-DD");
+
+    let params = {
+      startDate: moment().subtract(5, "d").format("YYYY-MM-DD"),
+      endDate: date,
+    };
+
+    console.log("params ", params)
 
     await postData(BASE_URL + LIST_POD, params, token).then((response) => {
       console.log("response getPIckup home1", response);
@@ -116,8 +123,6 @@ export default function HomePOD({ navigation }) {
       }
     });
   }, [isRefresh]);
-
- 
 
   const renderListEmpty = () => {
     return (
@@ -183,9 +188,7 @@ export default function HomePOD({ navigation }) {
           <Text style={[styles.text_11, { color: "#262F56" }]}>
             Total {item.total_pickup_order} order pelanggan
           </Text>
-          <Text style={[styles.text_11, { color: "#262F56" }]}>
-            {date}
-          </Text>
+          <Text style={[styles.text_11, { color: "#262F56" }]}>{date}</Text>
         </View>
         <View
           style={{

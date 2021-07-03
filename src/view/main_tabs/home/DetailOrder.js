@@ -18,6 +18,8 @@ import {
   UPLOAD_PICTURE_POP,
   postData,
   getData,
+  GET_ROUTE,
+  GET_PRICE,
   postFormData,
 } from "../../../network/ApiService";
 import BottomSheet from "react-native-bottomsheet-reanimated";
@@ -69,6 +71,8 @@ const { width, height } = Dimensions.get("window");
 const snapPoints = [0, height / 2, "70%", "100%"];
 
 export default function DetailOrder({ navigation, route, props }) {
+  const { id_pickup, status_pickup } = route.params;
+
   const [reason, setReason] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [detail_pickup, setDataDetailPickup] = useState(null);
@@ -76,10 +80,12 @@ export default function DetailOrder({ navigation, route, props }) {
   const [data_item, setDataItem] = useState([]);
   const [selectedId, setSeledtedId] = useState("");
   const [units, setUnits] = useState([]);
+  const [item_type, setItemType] = useState([]);
   const [service, setService] = useState([]);
   const [data_picture, setDataPicture] = useState();
   const [dataImage, setDataImage] = useState("");
   const [uriImage, setUriImage] = useState("");
+  const [id_route, setIdRoute] = useState("");
 
   const [dataItemsTemporary, setDataTemp] = useState({
     id: "",
@@ -90,10 +96,11 @@ export default function DetailOrder({ navigation, route, props }) {
     name: "",
     unit_total: "",
     unit_count: "",
-    unit: "buah",
+    unit: "",
     weight: "",
     volume: "",
     type: "",
+    type_id: "",
   });
   const [typeForm, setTypeForm] = useState("");
 
@@ -105,7 +112,7 @@ export default function DetailOrder({ navigation, route, props }) {
   const [isCustomCamera, setIsCustomCamera] = useState(false);
   const [isEditPhoto, setIsEditPhoto] = useState(false);
 
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(status_pickup);
   const [notes, setNotes] = useState("");
   const [driverPick, setDriverPIck] = useState(true);
 
@@ -119,8 +126,6 @@ export default function DetailOrder({ navigation, route, props }) {
   const [selectedValue, setSelectedValue] = React.useState("ble");
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
-  const { id_pickup, status_pickup } = route.params;
-
   const refBottomSheet = useRef(null);
 
   useEffect(() => {
@@ -131,7 +136,7 @@ export default function DetailOrder({ navigation, route, props }) {
         setIsLoading(true);
         await Printer.init();
         const results = await Printer.getDeviceList();
-        console.log("getListDevices", results);
+        // console.log("getListDevices", results);
         setIsBluetooth(true);
         setDevices(
           results.map((item: any) => ({ ...item, printerType: selectedValue }))
@@ -170,7 +175,7 @@ export default function DetailOrder({ navigation, route, props }) {
 
   useEffect(() => {
     getPickupPlan();
-    // getAllUnit();
+    getAllUnit();
     getAllServices();
   }, []);
 
@@ -179,6 +184,7 @@ export default function DetailOrder({ navigation, route, props }) {
       return false;
     }
   };
+
   const onSaveItem = async () => {
     var token = await getValue(TOKEN);
     refBottomSheet.current.snapTo(0);
@@ -191,21 +197,24 @@ export default function DetailOrder({ navigation, route, props }) {
       serviceId: dataItemsTemporary.service_id,
       weight: dataItemsTemporary.weight,
       volume: dataItemsTemporary.volume,
-      type: dataItemsTemporary.type,
+      type: dataItemsTemporary.type_id,
       unit: dataItemsTemporary.unit,
+      routePriceId: dataItemsTemporary.type_id,
     };
-    console.log("Params  onSaveItem", params);
     if (typeForm == "add") {
       params = {
         pickupId: id_pickup,
         name: dataItemsTemporary.name,
         weight: dataItemsTemporary.weight,
         volume: dataItemsTemporary.volume,
-        type: dataItemsTemporary.type,
         count: dataItemsTemporary.unit_count,
         unit: dataItemsTemporary.unit,
         serviceId: dataItemsTemporary.service_id,
+        routePriceId: dataItemsTemporary.type_id,
+        type: dataItemsTemporary.type_id,
       };
+      console.log("Params  onSaveItem", params);
+
       await postData(BASE_URL + CREATE_ITEM_DRIVER, params, token)
         .then((response) => {
           console.log("response CREATE_ITEM_DRIVER", response);
@@ -242,12 +251,19 @@ export default function DetailOrder({ navigation, route, props }) {
     }
   };
 
+  const submitInReason = () => {
+    if (reason != "") {
+      submitPickup();
+      setModalVisible(false);
+    }
+  };
+
   const submitPickup = async (value) => {
     var token = await getValue(TOKEN);
     var sts = "";
-    if (status == "sukses") {
+    if (status == "success") {
       sts = "success";
-    } else if (status == "gagal") {
+    } else if (status == "failed") {
       sts = "failed";
     } else {
       sts = "updated";
@@ -307,7 +323,6 @@ export default function DetailOrder({ navigation, route, props }) {
   const getPickupPlan = async (id) => {
     var token = await getValue(TOKEN);
     setIsLoading(true);
-    console.log("response token", token);
     var params = {
       pickupId: id_pickup,
     };
@@ -315,7 +330,7 @@ export default function DetailOrder({ navigation, route, props }) {
     await postData(BASE_URL + DETAIL_PICKUP_DRIVER, params, token).then(
       (response) => {
         setIsLoading(false);
-        console.log("response getPIckup detail", response);
+        console.log("response getPIckup detail 1", response);
         if (response.success == true) {
           var sender = response.data.sender;
           setDataDetailPickup(response.data);
@@ -331,12 +346,73 @@ export default function DetailOrder({ navigation, route, props }) {
               sender.province
           );
           setDataItem(response.data.items);
-          console.log("response getPIckup detail", response.data);
+          console.log("response getPIckup detail 2", response.data);
+          getRoute(
+            response.data.sender.city,
+            response.data.receiver.district,
+            response.data.fleet_id,
+            response.data.receiver.city
+          );
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }
       }
     );
+  };
+
+  const getRoute = async (
+    origin,
+    destination_district,
+    fleetId,
+    destination_city
+  ) => {
+    var token = await getValue(TOKEN);
+    setIsLoading(true);
+    var params = {
+      origin: origin,
+      destination_district: destination_district,
+      fleetId: fleetId,
+      destination_city: destination_city,
+    };
+
+    await postData(BASE_URL + GET_ROUTE, params, token)
+      .then((response) => {
+        setIsLoading(false);
+        console.log("response getRoute", response);
+        if (response.success == true) {
+          var data_route = response.data;
+          setIdRoute(data_route.id);
+          getPrice(data_route.id);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      })
+      .catch((error) => {
+        console.log("error getRoute", error);
+      });
+  };
+
+  const getPrice = async (id) => {
+    var token = await getValue(TOKEN);
+    setIsLoading(true);
+    var params = {
+      routeId: id,
+    };
+
+    await postData(BASE_URL + GET_PRICE, params, token)
+      .then((response) => {
+        setIsLoading(false);
+        console.log("response getPrice", response);
+        if (response.success == true) {
+          var data_route = response.data;
+          setItemType(data_route);
+        } else if (response.message == "Unauthenticated.") {
+          goLogout();
+        }
+      })
+      .catch((error) => {
+        console.log("error getPrice", error);
+      });
   };
 
   const getAllUnit = async () => {
@@ -347,17 +423,26 @@ export default function DetailOrder({ navigation, route, props }) {
     ];
     setUnits(units);
 
-    // var token = await getValue(TOKEN);
-    // await getData(BASE_URL + ALLUNIT, token).then((response) => {
-    //   console.log("response getAllUnit", response);
-    //   if (response.success == true) {
-    //     let value = response.data;
-    //     setUnits(value);
-    //     // this.setState({ picker: true });
-    //   } else if (response.message == "Unauthenticated.") {
-    //     // this.props.navigation.replace("Login");
-    //   }
-    // });
+    var token = await getValue(TOKEN);
+    await getData(BASE_URL + ALLUNIT, token)
+      .then((response) => {
+        if (response.success == true) {
+          let value = response.data;
+          setUnits(value);
+          var data = { ...dataItemsTemporary };
+          data = { ...data, unit_label: value[0] };
+          data = { ...data, unit: value[0] };
+          // data = { ...data, type: value.name };
+          setDataTemp(data);
+
+          // this.setState({ picker: true });
+        } else if (response.message == "Unauthenticated.") {
+          // this.props.navigation.replace("Login");
+        }
+      })
+      .catch((error) => {
+        console.warn("error getAllUnit", error);
+      });
   };
 
   const getAllServices = async () => {
@@ -387,6 +472,13 @@ export default function DetailOrder({ navigation, route, props }) {
     refBottomSheet.current.snapTo(index);
     console.log("data onEdit", data);
     setTypeForm("edit");
+    var type = "";
+
+    item_type.map((data_price) => {
+      if (data_price.id == data.route_price_id) {
+        type = data_price.type;
+      }
+    });
     setDataTemp({
       id: data.id,
       unit_id: "",
@@ -398,7 +490,8 @@ export default function DetailOrder({ navigation, route, props }) {
       unit_count: data.unit_count,
       unit: data.unit,
       weight: data.weight,
-      type: data.type,
+      type: type,
+      type_id: data.route_price_id,
       volume: data.volume,
     });
   };
@@ -415,9 +508,10 @@ export default function DetailOrder({ navigation, route, props }) {
       name: "",
       unit_total: "",
       unit_count: "",
-      unit: "",
+      unit: units[0],
       weight: "",
       type: "",
+      type_id: "",
       volume: "",
     });
   };
@@ -436,6 +530,7 @@ export default function DetailOrder({ navigation, route, props }) {
       unit: data.unit,
       weight: data.weight,
       type: data.type,
+      type_id: data.type,
       volume: data.volume,
     });
     setIsModalOptions(true);
@@ -448,7 +543,6 @@ export default function DetailOrder({ navigation, route, props }) {
 
     await postData(BASE_URL + DELETE_ITEM_DRIVER, params, token)
       .then((response) => {
-        console.log("onDeleted ", response);
         setIsModalOptions(false);
         getPickupPlan();
       })
@@ -473,8 +567,8 @@ export default function DetailOrder({ navigation, route, props }) {
 
   const selectType = (i) => {
     setIndexSelected(i);
-    setItemModal(units);
-    setTypeModal("unit");
+    setItemModal(item_type);
+    setTypeModal("item_type");
     setModalUnitVisible(true);
   };
 
@@ -488,9 +582,15 @@ export default function DetailOrder({ navigation, route, props }) {
   const onSelectedUnit = (value) => {
     if (typeModal == "unit") {
       var data = { ...dataItemsTemporary };
-      data = { ...data, unit_label: value.name };
-      // data = { ...data, unit_id: value.id };
-      data = { ...data, type: value.name };
+      data = { ...data, unit_label: value };
+      data = { ...data, unit: value };
+      // data = { ...data, type: value.name };
+      setDataTemp(data);
+      setModalUnitVisible(false);
+    } else if (typeModal == "item_type") {
+      var data = { ...dataItemsTemporary };
+      data = { ...data, type: value.type };
+      data = { ...data, type_id: value.id };
       setDataTemp(data);
       setModalUnitVisible(false);
     } else {
@@ -703,7 +803,7 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const onPickup = (value) => {
-    if (status == "gagal") {
+    if (status == "failed") {
       setModalVisible(true);
       // submitPickup();
     } else {
@@ -762,7 +862,7 @@ export default function DetailOrder({ navigation, route, props }) {
               }}
             >
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={() => submitInReason()}
                 style={{
                   backgroundColor: "#A80002",
                   paddingHorizontal: moderateScale(30),
@@ -795,28 +895,75 @@ export default function DetailOrder({ navigation, route, props }) {
             transparent={true}
             visible={modalUnitVisible}
           >
-            <View style={styles.centeredView}>
-              <View style={styles.modal_dropdown}>
-                <Text style={styles.modalText}>Pilih Satuan</Text>
-                {itemModal.map((data, key) => {
-                  return (
-                    <TouchableOpacity
-                      key={key}
-                      onPress={() => onSelectedUnit(data)}
-                    >
-                      <Text
-                        style={[
-                          styles.text_14,
-                          { color: "#262F56", margin: moderateScale(5) },
-                        ]}
+            <TouchableOpacity
+              onPress={() => setModalUnitVisible(false)}
+              style={styles.centeredView}
+            >
+              <TouchableWithoutFeedback>
+                <View style={styles.modal_dropdown}>
+                  <Text style={[styles.modalText, { fontSize: 14 }]}>
+                    Pilih Satuan
+                  </Text>
+                  {itemModal.map((data, key) => {
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        onPress={() => onSelectedUnit(data)}
                       >
-                        {data.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+                        <Text
+                          style={[
+                            styles.text_14,
+                            { color: "#262F56", margin: moderateScale(5) },
+                          ]}
+                        >
+                          {data}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </TouchableWithoutFeedback>
+            </TouchableOpacity>
+          </Modal>
+        </TouchableOpacity>
+      );
+    } else if (typeModal === "item_type") {
+      return (
+        <TouchableOpacity style={styles.centeredView}>
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalUnitVisible}
+          >
+            <TouchableOpacity
+              onPress={() => setModalUnitVisible(false)}
+              style={styles.centeredView}
+            >
+              <TouchableWithoutFeedback>
+                <View style={styles.modal_dropdown}>
+                  <Text style={[styles.modalText, { fontSize: 14 }]}>
+                    Pilih Jenis Barang
+                  </Text>
+                  {itemModal.map((data, key) => {
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        onPress={() => onSelectedUnit(data)}
+                      >
+                        <Text
+                          style={[
+                            styles.text_14,
+                            { color: "#262F56", margin: moderateScale(5) },
+                          ]}
+                        >
+                          {data.type}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </Modal>
         </TouchableOpacity>
       );
@@ -828,28 +975,33 @@ export default function DetailOrder({ navigation, route, props }) {
             transparent={true}
             visible={modalUnitVisible}
           >
-            <View style={styles.centeredView}>
-              <View style={styles.modal_dropdown}>
-                <Text style={styles.modalText}>Pilih Service</Text>
-                {itemModal.map((data, key) => {
-                  return (
-                    <TouchableOpacity
-                      key={key}
-                      onPress={() => onSelectedUnit(data)}
-                    >
-                      <Text
-                        style={[
-                          styles.text_title_14,
-                          { color: "#262F56", margin: moderateScale(5) },
-                        ]}
+            <TouchableOpacity
+              onPress={() => setModalUnitVisible(false)}
+              style={styles.centeredView}
+            >
+              <TouchableWithoutFeedback>
+                <View style={styles.modal_dropdown}>
+                  <Text style={styles.modalText}>Pilih Service</Text>
+                  {itemModal.map((data, key) => {
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        onPress={() => onSelectedUnit(data)}
                       >
-                        {data.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+                        <Text
+                          style={[
+                            styles.text_title_14,
+                            { color: "#262F56", margin: moderateScale(5) },
+                          ]}
+                        >
+                          {data.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </Modal>
         </View>
       );
@@ -924,21 +1076,34 @@ export default function DetailOrder({ navigation, route, props }) {
           >
             {item.weight + " " + item.weight_unit}
           </Text>
+          <Text
+            style={[
+              styles.text_10,
+              { flex: 0.5, marginLeft: moderateScale(5) },
+            ]}
+          >
+            {item.volume}
+          </Text>
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>
-          <TouchableOpacity onPress={() => onEdit(2, item)}>
-            <Image
-              style={{ width: moderateScale(15), height: moderateScale(15) }}
-              source={require("../../../assets/image/ic_edit.png")}
-            ></Image>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onSelectDeleted(index, item)}>
-            <Image
-              style={{ width: moderateScale(25), height: moderateScale(20) }}
-              source={require("../../../assets/image/del.png")}
-            ></Image>
-          </TouchableOpacity>
+          {status_pickup != "success" && (
+            <TouchableOpacity onPress={() => onEdit(2, item)}>
+              <Image
+                style={{ width: moderateScale(15), height: moderateScale(15) }}
+                source={require("../../../assets/image/ic_edit.png")}
+              ></Image>
+            </TouchableOpacity>
+          )}
+
+          {status_pickup != "success" && (
+            <TouchableOpacity onPress={() => onSelectDeleted(index, item)}>
+              <Image
+                style={{ width: moderateScale(25), height: moderateScale(20) }}
+                source={require("../../../assets/image/del.png")}
+              ></Image>
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.line}></View>
       </View>
@@ -946,22 +1111,26 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const renderFooter = () => {
-    return (
-      <TouchableOpacity
-        style={{ flexDirection: "row", marginTop: moderateScale(10) }}
-        onPress={() => onAddItem()}
-      >
-        <Image
-          style={{
-            height: moderateScale(15),
-            width: moderateScale(15),
-            marginRight: moderateScale(8),
-          }}
-          source={require("../../../assets/image/ic_plus.png")}
-        ></Image>
-        <Text>Tambah Item</Text>
-      </TouchableOpacity>
-    );
+    if (status_pickup == "success") {
+      return <View></View>;
+    } else {
+      return (
+        <TouchableOpacity
+          style={{ flexDirection: "row", marginTop: moderateScale(10) }}
+          onPress={() => onAddItem()}
+        >
+          <Image
+            style={{
+              height: moderateScale(15),
+              width: moderateScale(15),
+              marginRight: moderateScale(8),
+            }}
+            source={require("../../../assets/image/ic_plus.png")}
+          ></Image>
+          <Text>Tambah Item</Text>
+        </TouchableOpacity>
+      );
+    }
   };
 
   const renderBottomSheet = () => {
@@ -1039,7 +1208,7 @@ export default function DetailOrder({ navigation, route, props }) {
 
               <View style={{ flex: 1, marginLeft: moderateScale(5) }}>
                 <Text style={styles.text_10}>Satuan</Text>
-                <TextInput
+                {/* <TextInput
                   paddingLeft={moderateScale(12)}
                   value={dataItemsTemporary.unit}
                   style={{
@@ -1050,7 +1219,45 @@ export default function DetailOrder({ navigation, route, props }) {
                   }}
                   placeholder="satuan"
                   onChangeText={(value) => onUnitChange(value)}
-                ></TextInput>
+                ></TextInput> */}
+                <TouchableOpacity
+                  onPress={() => selectUnits(0)}
+                  style={{
+                    flexDirection: "row",
+                    flex: 1,
+                    alignItems: "center",
+                    backgroundColor: "#F1F1F1",
+                    paddingHorizontal: moderateScale(10),
+                    borderRadius: moderateScale(12),
+                    marginTop: verticalScale(5),
+                    marginRight: moderateScale(10),
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.text_12,
+                      {
+                        marginTop: 0,
+                        color: "#686868",
+                        marginRight: moderateScale(5),
+                      },
+                    ]}
+                  >
+                    {dataItemsTemporary.unit == ""
+                      ? "Satuan"
+                      : dataItemsTemporary.unit}
+                  </Text>
+                  <View style={{ position: "absolute", right: 10 }}>
+                    <Image
+                      style={{
+                        height: verticalScale(16),
+                        width: verticalScale(16),
+                        resizeMode: "stretch",
+                      }}
+                      source={require("../../../assets/image/ic_arrow_down.png")}
+                    ></Image>
+                  </View>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -1368,21 +1575,32 @@ export default function DetailOrder({ navigation, route, props }) {
             >
               <Text style={[styles.text_10, { flex: 1 }]}>Nama barang</Text>
               <Text style={[styles.text_10, { flex: 0.6 }]}>Jumlah</Text>
-              <Text style={[styles.text_10, { flex: 0.6 }]}>Berat Total</Text>
+              <Text style={[styles.text_10, { flex: 0.6 }]}>Berat</Text>
+              <Text style={[styles.text_10, { flex: 0.5 }]}>Volume</Text>
               <Text
                 style={[
                   styles.text_10,
                   { flex: 0.8, marginLeft: moderateScale(5) },
                 ]}
               >
-                Req Layanan
+                Layanan
               </Text>
-              <View
-                style={{ width: moderateScale(15), height: moderateScale(15) }}
-              ></View>
-              <View
-                style={{ width: moderateScale(25), height: moderateScale(15) }}
-              ></View>
+              {status_pickup != "success" && (
+                <View
+                  style={{
+                    width: moderateScale(15),
+                    height: moderateScale(15),
+                  }}
+                ></View>
+              )}
+              {status_pickup != "success" && (
+                <View
+                  style={{
+                    width: moderateScale(25),
+                    height: moderateScale(15),
+                  }}
+                ></View>
+              )}
             </View>
 
             <FlatList
@@ -1428,16 +1646,13 @@ export default function DetailOrder({ navigation, route, props }) {
                 onValueChange={(value, label) => onValueStatus(value, label)}
               >
                 <Picker.Item label="- Pilih -" value="" />
-                <Picker.Item key={0} label="sukses" value="sukses" />
-                <Picker.Item key={1} label="gagal" value="gagal" />
-                <Picker.Item
-                  key={2}
-                  label="ada perubahan"
-                  value="ada perubahan"
-                />
+                <Picker.Item key={0} label="sukses" value="success" />
+                <Picker.Item key={1} label="gagal" value="failed" />
+                <Picker.Item key={2} label="ada perubahan" value="updated" />
               </Picker>
             )}
           </View>
+
           <View
             style={{
               width: width - moderateScale(40),
@@ -1445,56 +1660,64 @@ export default function DetailOrder({ navigation, route, props }) {
               marginBottom: verticalScale(10),
             }}
           >
-            <Text>Gambar</Text>
-            <View
-              style={{
-                width: width - moderateScale(40),
-                height: verticalScale(200),
-                marginVertical: verticalScale(8),
-                borderRadius: moderateScale(20),
-                backgroundColor: "#d5dedc",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                {uriImage != "" ? (
-                  <Image
-                    style={{
-                      width: width - moderateScale(40),
-                      height: verticalScale(200),
-                      borderRadius: moderateScale(20),
-                    }}
-                    source={{ uri: uriImage }}
-                  ></Image>
-                ) : (
-                  <Image
-                    style={{
-                      width: moderateScale(100),
-                      height: moderateScale(100),
-                      resizeMode: "stretch",
-                    }}
-                    source={require("../../../assets/image/photo_camera.png")}
-                  ></Image>
-                )}
+            {status_pickup != "success" && (
+              <View>
+                <Text>Gambar</Text>
+                <View
+                  style={{
+                    width: width - moderateScale(40),
+                    height: verticalScale(200),
+                    marginVertical: verticalScale(8),
+                    borderRadius: moderateScale(20),
+                    backgroundColor: "#d5dedc",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
+                    {uriImage != "" ? (
+                      <Image
+                        style={{
+                          width: width - moderateScale(40),
+                          height: verticalScale(200),
+                          borderRadius: moderateScale(20),
+                        }}
+                        source={{ uri: uriImage }}
+                      ></Image>
+                    ) : (
+                      <Image
+                        style={{
+                          width: moderateScale(100),
+                          height: moderateScale(100),
+                          resizeMode: "stretch",
+                        }}
+                        source={require("../../../assets/image/photo_camera.png")}
+                      ></Image>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {status_pickup == "success" || status_pickup == "updated" ? (
+              <TouchableOpacity
+                onPress={() => onPrint()}
+                style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
+              >
+                <Text style={[styles.text_14, { color: "#000000" }]}>
+                  Cetak
+                </Text>
               </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => onPickup()}
-              style={styles.button_primary}
-            >
-              <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
-                PICK UP
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => onPrint()}
-              style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
-            >
-              <Text style={[styles.text_14, { color: "#000000" }]}>Cetak</Text>
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => onPickup()}
+                style={styles.button_primary}
+              >
+                <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
+                  PICK UP
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </ScrollView>

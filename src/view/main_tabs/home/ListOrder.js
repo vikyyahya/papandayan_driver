@@ -116,7 +116,7 @@ export default function ListOrder({ navigation, route }) {
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
     console.log("response token", token);
-    var parans = {
+    var params = {
       perPage: 20,
       page: 1,
       id: "",
@@ -130,7 +130,9 @@ export default function ListOrder({ navigation, route }) {
       pickupPlanId: data_pickup_plan.id,
     };
     setIsLoading(true);
-    await postData(BASE_URL + GET_BY_PICKUP_PLANE, parans, token).then(
+    console.log("Param", params);
+
+    await postData(BASE_URL + GET_BY_PICKUP_PLANE, params, token).then(
       (response) => {
         console.log("response getPIckup1", response);
         setIsLoading(false);

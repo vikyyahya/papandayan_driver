@@ -208,35 +208,7 @@ function MainTabs() {
           ),
         }}
       />
-      <Tab.Screen
-        name="Rates"
-        component={Rates}
-        options={{
-          tabBarLabel: "Notifikasi",
-          tabBarIcon: ({ color, size }) => (
-            <>
-              {color == "#1E1F20" ? (
-                <IconNotification
-                  style={{
-                    width: 25,
-                    height: 25,
-                    resizeMode: "stretch",
-                  }}
-                ></IconNotification>
-              ) : (
-                <IconNotification
-                  style={{
-                    width: 25,
-                    height: 25,
-                    resizeMode: "stretch",
-                  }}
-                ></IconNotification>
-              )}
-            </>
-          ),
-        }}
-      />
-
+     
       <Tab.Screen
         name="History"
         component={History}
@@ -270,7 +242,7 @@ function MainTabs() {
         component={Profile}
         options={{
           tabBarLabel: "Profile",
-          tabBarVisible: false,
+          tabBarVisible: true,
 
           tabBarIcon: ({ color, size }) => (
             <>

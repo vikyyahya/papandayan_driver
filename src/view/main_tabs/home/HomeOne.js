@@ -103,6 +103,8 @@ export default function HomeOne({ navigation }) {
       endDate: moment().format("YYYY-MM-DD"),
     };
 
+    console.log("params", params)
+
     await postData(BASE_URL + TOTAL_POP, params, token).then((response) => {
       console.log("response getDataTotalPOP", response);
       if (response.success == true) {

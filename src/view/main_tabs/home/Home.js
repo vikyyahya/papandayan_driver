@@ -96,12 +96,13 @@ export default function Home({ navigation, route }) {
   const getPickupPlan = async (isDate) => {
     var token = await getValue(TOKEN);
     var date = moment().format("YYYY-MM-DD");
+    var endDate = moment().subtract(5,'d').format("YYYY-MM-DD");
     var parans = {
       perPage: 20,
       id: "",
       page: 1,
-      startDate: isDate == true ? date : "",
-      endDate: isDate == true ? date : "",
+      startDate: isDate == true ? date :  moment().subtract(5,'d').format("YYYY-MM-DD") ,
+      endDate: date,
       licenseNumber: "",
       status: "",
       vehicleType: "",
@@ -110,6 +111,8 @@ export default function Home({ navigation, route }) {
         order: "",
       },
     };
+
+    console.log("params ", parans)
     await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
       console.log("response getPIckup home", response);
       setIsLoading(false);

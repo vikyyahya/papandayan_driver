@@ -17,6 +17,8 @@ export const EDIT_ITEM_DRIVER = "api/driver/item/update";
 export const DELETE_ITEM_DRIVER = "api/driver/item/delete";
 export const CREATE_ITEM_DRIVER = "api/driver/item/create";
 export const UPLOAD_PICTURE_POP = "api/tracking/upload-picture";
+export const GET_ROUTE = "api/route/get-fleet-origin-destination";
+export const GET_PRICE = "api/route/get-price";
 
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";
@@ -26,7 +28,7 @@ export const VILLAGES = "api/get-villages";
 export const SENDER = "api/sender";
 export const RECEIVER = "api/receiver";
 export const DEPTOR = "api/debtor";
-export const ALLUNIT = "api/unit";
+export const ALLUNIT = "api/unit/get";
 export const SERVICE = "api/service";
 export const PROFILE = "api/user-by-id";
 export const FLEET = "api/fleet";

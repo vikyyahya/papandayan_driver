@@ -63,6 +63,8 @@ const { width, height } = Dimensions.get("window");
 const snapPoints = [0, height / 2, "70%", "100%"];
 
 export default function DetailOrderPOD({ navigation, route, props }) {
+  const { id_pickup, status_pickup, number } = route.params;
+
   const [reason, setReason] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [detail_pickup, setDataDetailPickup] = useState(null);
@@ -92,7 +94,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const [isCustomCamera, setIsCustomCamera] = useState(false);
   const [isEditPhoto, setIsEditPhoto] = useState(false);
 
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(status_pickup);
   const [notes, setNotes] = useState("");
   const [driverPick, setDriverPIck] = useState(true);
 
@@ -106,7 +108,6 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const [selectedValue, setSelectedValue] = React.useState("ble");
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
-  const { id_pickup, status_pickup, number } = route.params;
   console.log("status_pickup", status_pickup);
 
   const refBottomSheet = useRef(null);
@@ -793,6 +794,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
           <Text style={[styles.text_10, { flex: 0.6 }]}>
             {item.weight + " " + item.weight_unit}
           </Text>
+          <Text style={[styles.text_10, { flex: 0.5 }]}>{item.volume}</Text>
           <Text style={[styles.text_10, { flex: 0.8 }]}>
             {item.service != null ? item.service.name : "-"}
           </Text>
@@ -1167,11 +1169,9 @@ export default function DetailOrderPOD({ navigation, route, props }) {
             >
               <Text style={[styles.text_10, { flex: 1 }]}>Nama barang</Text>
               <Text style={[styles.text_10, { flex: 0.6 }]}>Jumlah</Text>
-              <Text style={[styles.text_10, { flex: 0.6 }]}>Berat Total</Text>
+              <Text style={[styles.text_10, { flex: 0.6 }]}>Berat</Text>
+              <Text style={[styles.text_10, { flex: 0.5 }]}>Volume</Text>
               <Text style={[styles.text_10, { flex: 0.8 }]}>Req Layanan</Text>
-              <View
-                style={{ width: moderateScale(15), height: moderateScale(15) }}
-              ></View>
             </View>
 
             <FlatList
@@ -1234,39 +1234,41 @@ export default function DetailOrderPOD({ navigation, route, props }) {
             }}
           >
             <Text>Gambar</Text>
-            <View
-              style={{
-                width: width - moderateScale(40),
-                height: verticalScale(200),
-                marginVertical: verticalScale(8),
-                borderRadius: moderateScale(20),
-                backgroundColor: "#d5dedc",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                {uriImage != "" ? (
-                  <Image
-                    style={{
-                      width: width - moderateScale(40),
-                      height: verticalScale(200),
-                      borderRadius: moderateScale(20),
-                    }}
-                    source={{ uri: uriImage }}
-                  ></Image>
-                ) : (
-                  <Image
-                    style={{
-                      width: moderateScale(100),
-                      height: moderateScale(100),
-                      resizeMode: "stretch",
-                    }}
-                    source={require("../../../assets/image/photo_camera.png")}
-                  ></Image>
-                )}
-              </TouchableOpacity>
-            </View>
+            {status_pickup != "success" && (
+              <View
+                style={{
+                  width: width - moderateScale(40),
+                  height: verticalScale(200),
+                  marginVertical: verticalScale(8),
+                  borderRadius: moderateScale(20),
+                  backgroundColor: "#d5dedc",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
+                  {uriImage != "" ? (
+                    <Image
+                      style={{
+                        width: width - moderateScale(40),
+                        height: verticalScale(200),
+                        borderRadius: moderateScale(20),
+                      }}
+                      source={{ uri: uriImage }}
+                    ></Image>
+                  ) : (
+                    <Image
+                      style={{
+                        width: moderateScale(100),
+                        height: moderateScale(100),
+                        resizeMode: "stretch",
+                      }}
+                      source={require("../../../assets/image/photo_camera.png")}
+                    ></Image>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
 
             <TouchableOpacity
               onPress={() => onPickup()}
@@ -1277,12 +1279,16 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => onPrint()}
-              style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
-            >
-              <Text style={[styles.text_14, { color: "#000000" }]}>Cetak</Text>
-            </TouchableOpacity>
+            {status_pickup == "success" && (
+              <TouchableOpacity
+                onPress={() => onPrint()}
+                style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
+              >
+                <Text style={[styles.text_14, { color: "#000000" }]}>
+                  Cetak
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </ScrollView>
