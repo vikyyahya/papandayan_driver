@@ -198,7 +198,9 @@ export default function ListOrderPOD({ navigation, route }) {
         onPress={() =>
           navigation.navigate("DetailOrderPOD", {
             id_pickup: item.id,
-            status_pickup: item.status_pickup,
+            status_pickup: item.proof_of_delivery == null
+            ? ""
+            : item.proof_of_delivery.status_delivery,
             number: item.number,
           })
         }

@@ -31,7 +31,6 @@ import {
   FlatList,
   RefreshControl,
 } from "react-native";
-import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 
 export default function HomeOne({ navigation }) {
@@ -52,7 +51,7 @@ export default function HomeOne({ navigation }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
-      getPickupPlan();
+      // getPickupPlan();
       getDataProfile();
       getDataTotalPOP();
       getDataTotalPOD();
@@ -63,8 +62,10 @@ export default function HomeOne({ navigation }) {
 
   useEffect(() => {
     setIsLoading(true);
-    getPickupPlan();
+    // getPickupPlan();
     getDataProfile();
+    getDataTotalPOP();
+    getDataTotalPOD();
     handleTime();
   }, []);
 
@@ -103,7 +104,7 @@ export default function HomeOne({ navigation }) {
       endDate: moment().format("YYYY-MM-DD"),
     };
 
-    console.log("params", params)
+    console.log("params", params);
 
     await postData(BASE_URL + TOTAL_POP, params, token).then((response) => {
       console.log("response getDataTotalPOP", response);
@@ -152,6 +153,8 @@ export default function HomeOne({ navigation }) {
         tmpDataDashboard[1].totalSuccess = tmpSuccess;
         tmpDataDashboard[3].totalSuccess = tmpCancelled;
         setdataDashboard(tmpDataDashboard);
+        setIsRefresh(false);
+        setIsLoading(false);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -202,7 +205,6 @@ export default function HomeOne({ navigation }) {
     });
   };
 
-
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
     var token = await getValue(TOKEN);
@@ -211,8 +213,8 @@ export default function HomeOne({ navigation }) {
       perPage: 10,
       id: "",
       page: 1,
-      startDate: "",
-      endDate: "",
+      startDate: moment().format("YYYY-MM-DD"),
+      endDate: moment().format("YYYY-MM-DD"),
       licenseNumber: "",
       status: "",
       vehicleType: "",
@@ -224,24 +226,24 @@ export default function HomeOne({ navigation }) {
     await resetDataDashboard();
     await getDataTotalPOP();
     await getDataTotalPOD();
-    await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
-      console.log("response getPIckup home", response);
-      if (response.success == true) {
-        setDataPickup(response.data.data);
-        setIsRefresh(false);
-      } else if (response.message == "Unauthenticated.") {
-        goLogout();
-      }
-    });
+    // await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
+    //   console.log("response getPIckup home", response);
+    //   if (response.success == true) {
+    //     setDataPickup(response.data.data);
+    //     setIsRefresh(false);
+    //   } else if (response.message == "Unauthenticated.") {
+    //     goLogout();
+    //   }
+    // });
   }, [isRefresh]);
 
-  const onSelectDashboard = (index) =>{
-    if(index == 0 ) {
-      navigation.navigate("POP",{
-        status : true
-      })
+  const onSelectDashboard = (index) => {
+    if (index == 0) {
+      navigation.navigate("POP", {
+        status: true,
+      });
     }
-  }
+  };
 
   const renderListEmpty = () => {
     return (
@@ -265,7 +267,7 @@ export default function HomeOne({ navigation }) {
   const renderItem = ({ item, index }) => {
     return (
       <TouchableOpacity
-      onPress={()=> onSelectDashboard(index)}
+        onPress={() => onSelectDashboard(index)}
         style={{
           flexDirection: "row",
           height: verticalScale(90),

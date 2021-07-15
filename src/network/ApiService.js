@@ -19,6 +19,7 @@ export const CREATE_ITEM_DRIVER = "api/driver/item/create";
 export const UPLOAD_PICTURE_POP = "api/tracking/upload-picture";
 export const GET_ROUTE = "api/route/get-fleet-origin-destination";
 export const GET_PRICE = "api/route/get-price";
+export const HISTORY_POP = "api/driver/pickup-plan/history";
 
 export const REGISTER = "api/register";
 export const PROVINCES = "api/get-provinces";

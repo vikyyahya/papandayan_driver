@@ -1233,51 +1233,55 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               marginBottom: verticalScale(10),
             }}
           >
-            <Text>Gambar</Text>
             {status_pickup != "success" && (
-              <View
-                style={{
-                  width: width - moderateScale(40),
-                  height: verticalScale(200),
-                  marginVertical: verticalScale(8),
-                  borderRadius: moderateScale(20),
-                  backgroundColor: "#d5dedc",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                  {uriImage != "" ? (
-                    <Image
-                      style={{
-                        width: width - moderateScale(40),
-                        height: verticalScale(200),
-                        borderRadius: moderateScale(20),
-                      }}
-                      source={{ uri: uriImage }}
-                    ></Image>
-                  ) : (
-                    <Image
-                      style={{
-                        width: moderateScale(100),
-                        height: moderateScale(100),
-                        resizeMode: "stretch",
-                      }}
-                      source={require("../../../assets/image/photo_camera.png")}
-                    ></Image>
-                  )}
-                </TouchableOpacity>
+              <View>
+                <Text>Gambar</Text>
+
+                <View
+                  style={{
+                    width: width - moderateScale(40),
+                    height: verticalScale(200),
+                    marginVertical: verticalScale(8),
+                    borderRadius: moderateScale(20),
+                    backgroundColor: "#d5dedc",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
+                    {uriImage != "" ? (
+                      <Image
+                        style={{
+                          width: width - moderateScale(40),
+                          height: verticalScale(200),
+                          borderRadius: moderateScale(20),
+                        }}
+                        source={{ uri: uriImage }}
+                      ></Image>
+                    ) : (
+                      <Image
+                        style={{
+                          width: moderateScale(100),
+                          height: moderateScale(100),
+                          resizeMode: "stretch",
+                        }}
+                        source={require("../../../assets/image/photo_camera.png")}
+                      ></Image>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
-
-            <TouchableOpacity
-              onPress={() => onPickup()}
-              style={styles.button_primary}
-            >
-              <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
-                PICK UP
-              </Text>
-            </TouchableOpacity>
+            {status_pickup != "success" && (
+              <TouchableOpacity
+                onPress={() => onPickup()}
+                style={styles.button_primary}
+              >
+                <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
+                  PICK UP
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {status_pickup == "success" && (
               <TouchableOpacity

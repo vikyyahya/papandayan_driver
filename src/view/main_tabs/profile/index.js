@@ -8,12 +8,8 @@ import {
   getData,
   BASE_URL,
   PROFILE,
-  SENDER,
-  RECEIVER,
-  DEPTOR,
 } from "../../../network/ApiService";
 import { Loading } from "../../../util/Loading";
-import BottomSheet from "react-native-bottomsheet-reanimated";
 
 import {
   Text,
@@ -58,51 +54,9 @@ class Profil extends Component {
     this.setLoading(true);
     await this.setState({ token });
     await this.getDataProfile();
-    this.getDataSender();
-    this.getDataReceiver();
-    this.getDataCollector();
   }
 
-  async getDataSender() {
-    await this.setState({ isLoading: true });
-    await getData(BASE_URL + SENDER, this.state.token).then((response) => {
-      console.log("getDataSender", response);
-
-      if (response.success == true) {
-        let value = response.data;
-        this.setState({ data_address: value, isLoading: false });
-        this.setState({ data_address_sender: value });
-      } else if (response.message == "Unauthenticated.") {
-        this.props.navigation.replace("Login");
-      }
-    });
-  }
-
-  async getDataReceiver() {
-    this.setState({ isLoading: true });
-    await getData(BASE_URL + RECEIVER, this.state.token).then((response) => {
-      console.log("getDataSender", response);
-
-      if (response.success == true) {
-        let value = response.data;
-        this.setState({ data_address_receiver: value, isLoading: false });
-      }
-    });
-  }
-
-  async getDataCollector() {
-    this.setState({ isLoading: true });
-    await getData(BASE_URL + DEPTOR, this.state.token).then((response) => {
-      console.log("getDataSender", response);
-
-      if (response.success == true) {
-        let value = response.data;
-        this.setState({ data_address_collector: value, isLoading: false });
-      } else if (response.message == "Unauthenticated.") {
-        this.props.navigation.replace("Login");
-      }
-    });
-  }
+ 
 
   async getDataProfile() {
     console.log("getDataProfile token ", this.state.token);

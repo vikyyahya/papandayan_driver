@@ -54,7 +54,7 @@ class FirstIntroScreen extends Component {
             Driver
           </Text>
         </View>
-          <Text>Version code 7</Text>
+          <Text>Version code 8</Text>
       </LinearGradient>
     );
   }

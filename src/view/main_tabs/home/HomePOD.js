@@ -80,11 +80,13 @@ export default function HomePOD({ navigation }) {
       endDate: date,
     };
 
-    console.log("params ", params)
+    console.log("params ", params);
 
     await postData(BASE_URL + LIST_POD, params, token).then((response) => {
       console.log("response getPIckup home1", response);
       setIsLoading(false);
+      setIsRefresh(false);
+
       if (response.success == true) {
         setDataPickup(response.data);
         console.log("response getPIckup home2", response.data);
@@ -97,31 +99,7 @@ export default function HomePOD({ navigation }) {
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
-    var token = await getValue(TOKEN);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
-    var parans = {
-      perPage: 10,
-      id: "",
-      page: 1,
-      startDate: "",
-      endDate: "",
-      licenseNumber: "",
-      status: "",
-      vehicleType: "",
-      sort: {
-        field: "",
-        order: "",
-      },
-    };
-    await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
-      console.log("response getPIckup home onRefresh", response);
-      if (response.success == true) {
-        setDataPickup(response.data.data);
-        setIsRefresh(false);
-      } else if (response.message == "Unauthenticated.") {
-        goLogout();
-      }
-    });
+    getPickupPlan();
   }, [isRefresh]);
 
   const renderListEmpty = () => {

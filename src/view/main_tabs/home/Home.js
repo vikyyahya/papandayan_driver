@@ -46,7 +46,7 @@ export default function Home({ navigation, route }) {
       if (route.params != undefined) {
         const { status } = route.params;
         getPickupPlan(status);
-      }else{
+      } else {
         getPickupPlan(false);
       }
       getDataProfile();
@@ -96,12 +96,13 @@ export default function Home({ navigation, route }) {
   const getPickupPlan = async (isDate) => {
     var token = await getValue(TOKEN);
     var date = moment().format("YYYY-MM-DD");
-    var endDate = moment().subtract(5,'d').format("YYYY-MM-DD");
+    var endDate = moment().subtract(5, "d").format("YYYY-MM-DD");
     var parans = {
       perPage: 20,
       id: "",
       page: 1,
-      startDate: isDate == true ? date :  moment().subtract(5,'d').format("YYYY-MM-DD") ,
+      startDate:
+        isDate == true ? date : moment().subtract(5, "d").format("YYYY-MM-DD"),
       endDate: date,
       licenseNumber: "",
       status: "",
@@ -112,9 +113,10 @@ export default function Home({ navigation, route }) {
       },
     };
 
-    console.log("params ", parans)
+    console.log("params ", parans);
     await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
       console.log("response getPIckup home", response);
+      setIsRefresh(false);
       setIsLoading(false);
       if (response.success == true) {
         setDataPickup(response.data.data);
@@ -127,31 +129,7 @@ export default function Home({ navigation, route }) {
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
-    var token = await getValue(TOKEN);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
-    var parans = {
-      perPage: 20,
-      id: "",
-      page: 1,
-      startDate: "",
-      endDate: "",
-      licenseNumber: "",
-      status: "",
-      vehicleType: "",
-      sort: {
-        field: "",
-        order: "",
-      },
-    };
-    await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
-      console.log("response getPIckup home", response);
-      if (response.success == true) {
-        setDataPickup(response.data.data);
-        setIsRefresh(false);
-      } else if (response.message == "Unauthenticated.") {
-        goLogout();
-      }
-    });
+    getPickupPlan();
   }, [isRefresh]);
 
   const renderListEmpty = () => {

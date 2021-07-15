@@ -175,7 +175,7 @@ class Home extends Component {
                 <FlatList
                   data={this.state.data_pickup}
                   renderItem={this.renderItem}
-                  keyExtractor={(item, index) => index}
+                  keyExtractor={(item, index) => index.toString()}
                   extraData={this.state.selectedId}
                 />
                 <TouchableOpacity
