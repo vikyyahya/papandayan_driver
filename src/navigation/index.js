@@ -28,7 +28,7 @@ import Profile from "../view/main_tabs/profile";
 import EditProfile from "../view/main_tabs/profile/EditProfile";
 import DropOff from "../view/drop_off";
 import PickUp from "../view/pick_up";
-import { View, Image } from "react-native";
+import { View, Image , Text} from "react-native";
 import { moderateScale, verticalScale } from "../util/ModerateScale";
 
 const Stack = createStackNavigator();
@@ -185,6 +185,33 @@ function MainTabs() {
         name="Home"
         component={HomeOne}
         options={{
+          tabBarLabel: ({ color, size }) => (
+            <>
+              {color == "red" ? (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "red",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  Home
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "#A80002",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  Home
+                </Text>
+              )}
+            </>
+          ),
           tabBarIcon: ({ color, size }) => (
             <>
               {color == "#1E1F20" ? (
@@ -193,6 +220,8 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
+
                   }}
                 ></IconHome>
               ) : (
@@ -201,6 +230,7 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
                   }}
                 ></IconHome>
               )}
@@ -213,7 +243,33 @@ function MainTabs() {
         name="History"
         component={History}
         options={{
-          tabBarLabel: "History",
+          tabBarLabel: ({ color, size }) => (
+            <>
+              {color == "red" ? (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "red",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  History
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "#A80002",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  History
+                </Text>
+              )}
+            </>
+          ),
           tabBarIcon: ({ color, size }) => (
             <>
               {color == "#1E1F20" ? (
@@ -222,6 +278,7 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
                   }}
                 ></IconHistory>
               ) : (
@@ -230,6 +287,7 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
                   }}
                 ></IconHistory>
               )}
@@ -243,6 +301,33 @@ function MainTabs() {
         options={{
           tabBarLabel: "Profile",
           tabBarVisible: true,
+          tabBarLabel: ({ color, size }) => (
+            <>
+              {color == "red" ? (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "red",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  Profile
+                </Text>
+              ) : (
+                <Text
+                  style={{
+                    position: "absolute",
+                    fontSize: moderateScale(10),
+                    color: "#A80002",
+                    bottom: verticalScale(2),
+                  }}
+                >
+                  Profile
+                </Text>
+              )}
+            </>
+          ),
 
           tabBarIcon: ({ color, size }) => (
             <>
@@ -252,6 +337,7 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
                   }}
                 ></IconProfile>
               ) : (
@@ -260,6 +346,7 @@ function MainTabs() {
                     width: 25,
                     height: 25,
                     resizeMode: "stretch",
+                    marginBottom: verticalScale(10),
                   }}
                 ></IconProfile>
               )}

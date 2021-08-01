@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const BASE_URL = "https://cargo.ivalpha.com/public/";
-export const LOGIN = "api/login-driver";
+export const BASE_URL = "https://backend.papandayancargo.id/";
+export const LOGIN = "api/login";
 export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
 export const LIST_POD = "api/driver/shipment-plan/list";
 export const TOTAL_POD = "api/driver/pod/dashboard";
@@ -32,6 +32,8 @@ export const DEPTOR = "api/debtor";
 export const ALLUNIT = "api/unit/get";
 export const SERVICE = "api/service";
 export const PROFILE = "api/user-by-id";
+export const UPDATE_PROFILE = "api/user/update-profile";
+export const UPDATE_AVATAR = "api/user/upload-avatar";
 export const FLEET = "api/fleet";
 export const PICKUP = "api/pickup";
 export const PROMO = "api/promo/user";

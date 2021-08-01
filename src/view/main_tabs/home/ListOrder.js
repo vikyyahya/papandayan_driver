@@ -63,13 +63,16 @@ export default function ListOrder({ navigation, route }) {
 
   const getVolumeAndTotal = async () => {
     var token = await getValue(TOKEN);
-    var parans = {
+    var params = {
       pickupPlanId: data_pickup_plan.id,
     };
     setIsLoading(true);
-    await postData(BASE_URL + TOTAL_VOL_DRIVER, parans, token)
+    await postData(BASE_URL + TOTAL_VOL_DRIVER, params, token)
       .then((response) => {
         setIsLoading(false);
+        console.log("response getVolumeAndTotal", response);
+        console.log("response getVolumeAndTotal", response);
+
         if (response.success == true) {
           setKg(response.data.kilo);
           setVolume(response.data.volume);
@@ -101,11 +104,10 @@ export default function ListOrder({ navigation, route }) {
     setIsLoading(true);
     await postData(BASE_URL + GET_BY_PICKUP_PLANE, params, token).then(
       (response) => {
-        console.log("response getPIckup1", response);
         setIsLoading(false);
         if (response.success == true) {
           setDataPickup(response.data.data);
-          console.log("response getPIckup2", response.data.data);
+          console.log("response searchPickupPlan", response.data.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
         }

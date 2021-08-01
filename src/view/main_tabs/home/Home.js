@@ -96,13 +96,13 @@ export default function Home({ navigation, route }) {
   const getPickupPlan = async (isDate) => {
     var token = await getValue(TOKEN);
     var date = moment().format("YYYY-MM-DD");
-    var endDate = moment().subtract(5, "d").format("YYYY-MM-DD");
+    var startDate = moment().subtract(5, "d").format("YYYY-MM-DD");
     var parans = {
       perPage: 20,
       id: "",
       page: 1,
       startDate:
-        isDate == true ? date : moment().subtract(5, "d").format("YYYY-MM-DD"),
+        isDate == true ? date : startDate,
       endDate: date,
       licenseNumber: "",
       status: "",

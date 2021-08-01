@@ -80,7 +80,9 @@ export default function HomePOD({ navigation }) {
       endDate: date,
     };
 
-    console.log("params ", params);
+    console.log("params getPickupPlan", BASE_URL + LIST_POD);
+    console.log("params getPickupPlan ", token);
+    console.log("params getPickupPlan", params);
 
     await postData(BASE_URL + LIST_POD, params, token).then((response) => {
       console.log("response getPIckup home1", response);
@@ -90,7 +92,6 @@ export default function HomePOD({ navigation }) {
       if (response.success == true) {
         setDataPickup(response.data);
         console.log("response getPIckup home2", response.data);
-        console.log("response getPIckup home3", response.data[0].pickups);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }

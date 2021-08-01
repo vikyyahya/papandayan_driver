@@ -1278,7 +1278,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
                 style={styles.button_primary}
               >
                 <Text style={[styles.text_14, { color: "#FFFFFF" }]}>
-                  PICK UP
+                  SUBMIT
                 </Text>
               </TouchableOpacity>
             )}

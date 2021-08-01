@@ -238,10 +238,30 @@ export default function HomeOne({ navigation }) {
   }, [isRefresh]);
 
   const onSelectDashboard = (index) => {
-    if (index == 0) {
-      navigation.navigate("POP", {
-        status: true,
-      });
+    switch (index) {
+      case 0:
+        navigation.navigate("POP", {
+          status: true,
+        });
+        break;
+      case 1:
+        navigation.navigate("HomePOD", {
+          status: true,
+        });
+
+        break;
+      case 2:
+        navigation.navigate("POP", {
+          status: true,
+        });
+        break;
+      case 3:
+        navigation.navigate("HomePOD", {
+          status: true,
+        });
+        break;
+      default:
+        break;
     }
   };
 

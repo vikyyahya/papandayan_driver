@@ -6,6 +6,7 @@ import moment from "moment";
 import { Loading } from "../../../util/Loading";
 import { getValue } from "../../../util/AsyncStorage";
 import { LOGIN_STATUS, TOKEN } from "../../../util/StringConstans";
+import { Picker } from "@react-native-picker/picker";
 
 import {
   Dimensions,
@@ -17,24 +18,37 @@ import {
   SafeAreaView,
   TouchableOpacity,
   FlatList,
+  Modal,
   RefreshControl,
   KeyboardAvoidingView,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
+const filterType = [
+  { id: 0, title: "Hari ini" },
+  { id: 1, title: "Minggu ini" },
+  { id: 2, title: "Bulan ini" },
+];
 
 export default function History({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefresh, setIsRefresh] = useState(false);
-  const [history, setHistory] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [history, setHistory] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [modalVisible, setModalVisible] = useState(true);
+  const [itemModal, setItemModal] = useState(filterType);
+  const [filter, setFilter] = useState(0);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       getHistory();
     });
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    getHistory();
   }, []);
 
   const goBack = () => {
@@ -55,12 +69,13 @@ export default function History({ navigation }) {
       .then((response) => {
         console.log("response", response);
         setIsLoading(false);
+        setIsRefresh(false);
         if (response.success) {
           var data_response = [];
           data_response = response.data.data;
-          data_response.map((data,index)=>{
+          data_response.map((data, index) => {
             data_response[index].isSelected = false;
-          })
+          });
           setHistory(data_response);
         }
       })
@@ -71,14 +86,63 @@ export default function History({ navigation }) {
 
   const onRefresh = () => {
     setIsRefresh(true);
+    getHistory();
   };
 
   const isSelectList = (item, index) => {
-    console.log("data", item);
-    console.log("data", item.isSelected);
     var data_history = history;
-    data_history[index].isSelected = !data_history[index].isSelected;
+    data_history[index].isSelected = !item.isSelected;
+    // data_history.push(history[0])
     setHistory(data_history);
+    if (item.id == selectedId) {
+      setSelectedId(null);
+    } else {
+      setSelectedId(item.id);
+    }
+  };
+
+  const onFilterSelected = async (value, label) => {
+    setIsLoading(true);
+    setFilter(value);
+    let token = await getValue(TOKEN);
+
+    var params = {};
+
+    if (value == 0) {
+      params = {
+        startDate: moment().format("YYYY-MM-DD"),
+        endDate: moment().format("YYYY-MM-DD"),
+      };
+    } else if (value == 1) {
+      params = {
+        startDate: moment().subtract(7, "d").format("YYYY-MM-DD"),
+        endDate: moment().format("YYYY-MM-DD"),
+      };
+    } else {
+      params = {
+        startDate: moment().subtract(30, "d").format("YYYY-MM-DD"),
+        endDate: moment().format("YYYY-MM-DD"),
+      };
+    }
+
+    console.log("params", params);
+    await postData(BASE_URL + HISTORY_POP, params, token)
+      .then((response) => {
+        console.log("response", response);
+        setIsLoading(false);
+        setIsRefresh(false);
+        if (response.success) {
+          var data_response = [];
+          data_response = response.data.data;
+          data_response.map((data, index) => {
+            data_response[index].isSelected = false;
+          });
+          setHistory(data_response);
+        }
+      })
+      .catch((error) => {
+        setIsLoading(false);
+      });
   };
 
   const renderListEmpty = () => {
@@ -89,7 +153,7 @@ export default function History({ navigation }) {
             justifyContent: "center",
             alignItems: "center",
             flex: 1,
-            height: verticalScale(300),
+            height: verticalScale(200),
           }}
         >
           <Image
@@ -102,40 +166,180 @@ export default function History({ navigation }) {
     );
   };
 
-  const renderItemHistory = ({ item, index }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => isSelectList(item, index)}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginVertical: verticalScale(10),
-        }}
-      >
-        <View>
-          <Text style={styles.text_bold_14}>#0930.14482340</Text>
-          <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-            Surabaya - Pontianak
-          </Text>
-        </View>
+  const renderItem = ({ item, index }) => {
+    // const backgroundColor = item.id === selectedId ? "#6e3b6e" : "#f9c2ff";
+    // const color = item.id === selectedId ? "white" : "black";
 
-        <View
+    return (
+      <View>
+        <TouchableOpacity
+          onPress={() => isSelectList(item, index)}
           style={{
-            flex: 1,
-            justifyContent: "flex-end",
-            alignItems: "flex-end",
+            flexDirection: "row",
+            alignItems: "center",
+            // backgroundColor: "#FFFFFF",
           }}
-        ></View>
+        >
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
+            <View
+              style={{
+                height: moderateScale(12),
+                width: moderateScale(12),
+                marginRight: moderateScale(10),
+                backgroundColor: "#A80002",
+                borderRadius: 50,
+              }}
+            />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[styles.text_bold_14, { marginTop: verticalScale(10) }]}
+            >
+              #0930.14482340
+            </Text>
+            <Text
+              style={[
+                styles.text_title_12,
+                { color: "#8D8F92", marginTop: verticalScale(5) },
+              ]}
+            >
+              Total {item.total_pickup_order} order pelanggan di pickup
+            </Text>
+          </View>
+
+          <Image
+            style={{
+              width: moderateScale(7),
+              height: moderateScale(9),
+              resizeMode: "stretch",
+              marginRight: moderateScale(5),
+              transform: [
+                item.id === selectedId
+                  ? { rotate: "90deg" }
+                  : { rotate: "0deg" },
+              ],
+            }}
+            source={require("../../../assets/image/ic_arrow_right.png")}
+          />
+        </TouchableOpacity>
+
+        {item.id === selectedId && (
+          <View
+            style={{
+              borderLeftWidth: 1,
+              borderBottomColor: "#8D8F92",
+              marginLeft: moderateScale(5),
+            }}
+          >
+            {item.pickups.map((data, index) => {
+              return (
+                <View
+                  key={index}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: verticalScale(10),
+                    marginLeft: moderateScale(16),
+                  }}
+                >
+                  <View>
+                    <Text style={styles.text_title_14}>{data.number}</Text>
+                    <Text
+                      style={[
+                        styles.text_title_12,
+                        { color: "#8D8F92", marginTop: verticalScale(5) },
+                      ]}
+                    >
+                      xxxxxx
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "flex-end",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    {renderIconStatus("success")}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderIconStatus = (data) => {
+    if (data == "success") {
+      return (
         <Image
-          style={{
-            width: moderateScale(8),
-            height: moderateScale(8),
-            resizeMode: "stretch",
-            marginRight: moderateScale(5),
+          style={styles.icon_check}
+          source={require("../../../assets/image/ic_check.png")}
+        ></Image>
+      );
+    } else if (data.status_pick == "failed") {
+      return (
+        <Image
+          style={styles.icon_check}
+          source={require("../../../assets/image/ic_cross.png")}
+        ></Image>
+      );
+    } else if (data.status_pick == "repickup") {
+      return (
+        <Image
+          style={styles.icon_check}
+          source={require("../../../assets/image/ic_reload.png")}
+        ></Image>
+      );
+    } else {
+      return (
+        <Image
+          style={styles.icon_check}
+          source={require("../../../assets/image/ic_check_yellow.png")}
+        ></Image>
+      );
+    }
+  };
+
+  const renderModal = (type) => {
+    return (
+      <View style={styles.centeredView}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            Alert.alert("Modal has been closed.");
           }}
-          source={require("../../../assets/image/ic_arrow_right.png")}
-        />
-      </TouchableOpacity>
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modal_dropdown}>
+              <Text style={styles.modalText}>Pilih Filter</Text>
+              {itemModal.map((data, key) => {
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    // onPress={() => tonSelectedUnit(data)}
+                  >
+                    <Text
+                      style={[
+                        styles.text_title_14,
+                        { color: "#000000", margin: moderateScale(5) },
+                      ]}
+                    >
+                      {data.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </Modal>
+      </View>
     );
   };
 
@@ -164,7 +368,23 @@ export default function History({ navigation }) {
             marginBottom: verticalScale(20),
           }}
         >
-          <TextInput placeholder="Hari Ini"></TextInput>
+          <Picker
+            style={styles.picker}
+            itemStyle={{
+              fontSize: moderateScale(3),
+            }}
+            enabled={true}
+            mode="dropdown"
+            placeholder="- Pilih -"
+            selectedValue={filter}
+            onValueChange={(value, label) => onFilterSelected(value, label)}
+          >
+            <Picker.Item label="- Pilih -" value="" />
+
+            <Picker.Item key={0} label={"Hari ini"} value={0} />
+            <Picker.Item key={1} label={"Minggu ini"} value={1} />
+            <Picker.Item key={2} label={"Bulan ini"} value={2} />
+          </Picker>
         </View>
 
         <Text
@@ -177,73 +397,6 @@ export default function History({ navigation }) {
         >
           Hari Ini
         </Text>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: verticalScale(16),
-          }}
-        >
-          <View>
-            <Text>PRK 1365 8834 FDE8</Text>
-            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-              Surabaya - Medan
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              alignItems: "flex-end",
-            }}
-          ></View>
-          <View style={styles.view_circle}></View>
-          <Text
-            style={[
-              styles.text_title_14,
-              {
-                color: "#717171",
-              },
-            ]}
-          ></Text>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginVertical: verticalScale(10),
-          }}
-        >
-          <View>
-            <Text>GRK 0923 5411 HGP1</Text>
-            <Text style={[styles.text_title_12, { color: "#8D8F92" }]}>
-              Surabaya - Pontianak
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              alignItems: "flex-end",
-            }}
-          ></View>
-          <Image
-            style={styles.icon_check}
-            source={require("../../../assets/image/ic_check.png")}
-          />
-          <Text
-            style={[
-              styles.text_title_14,
-              {
-                color: "#717171",
-              },
-            ]}
-          ></Text>
-        </View>
       </View>
 
       <View
@@ -256,10 +409,10 @@ export default function History({ navigation }) {
       >
         <FlatList
           data={history}
-          renderItem={renderItemHistory}
-          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
           extraData={selectedId}
-          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderListEmpty}
           refreshControl={
             <RefreshControl
               colors={["#9Bd35A", "#689F38"]}
@@ -270,6 +423,7 @@ export default function History({ navigation }) {
         />
       </View>
       <Loading visible={isLoading}></Loading>
+      {/* {renderModal()} */}
     </SafeAreaView>
   );
 }
@@ -324,6 +478,7 @@ const styles = StyleSheet.create({
   text_title_14: {
     fontSize: 14,
     fontFamily: "Montserrat-Regular",
+    color: "#4A4A4A",
   },
   icon_check: {
     width: moderateScale(17),
@@ -338,4 +493,123 @@ const styles = StyleSheet.create({
     backgroundColor: "#FED43B",
     marginRight: moderateScale(10),
   },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(52, 52, 52, 0.3)",
+  },
+  modal_dropdown: {
+    width: moderateScale(200),
+    height: moderateScale(180),
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 10,
+    fontSize: 20,
+    textAlign: "center",
+    fontFamily: "Montserrat-Bold",
+  },
+  picker: {
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    color: "#8D8F92",
+  },
 });
+
+const dataDummy = {
+  success: true,
+  data: {
+    current_page: 1,
+    data: [
+      {
+        id: 4,
+        number: "SP21062700003",
+        total_pickup_order: 2,
+        pickups: [
+          {
+            id: 9,
+            shipment_plan_id: 4,
+            number: "P21061900004",
+            proof_of_delivery: null,
+          },
+          {
+            id: 15,
+            shipment_plan_id: 4,
+            number: "P21062500006",
+            proof_of_delivery: {
+              status: "submitted",
+              status_delivery: "re-delivery",
+            },
+          },
+        ],
+      },
+
+      {
+        id: 5,
+        number: "SP21062700003",
+        total_pickup_order: 2,
+        pickups: [
+          {
+            id: 9,
+            shipment_plan_id: 4,
+            number: "P21061900004",
+            proof_of_delivery: null,
+          },
+          {
+            id: 15,
+            shipment_plan_id: 4,
+            number: "P21062500006",
+            proof_of_delivery: {
+              status: "submitted",
+              status_delivery: "re-delivery",
+            },
+          },
+        ],
+      },
+
+      {
+        id: 6,
+        number: "SP21062700003",
+        total_pickup_order: 2,
+        pickups: [
+          {
+            id: 9,
+            shipment_plan_id: 4,
+            number: "P21061900004",
+            proof_of_delivery: null,
+          },
+          {
+            id: 15,
+            shipment_plan_id: 4,
+            number: "P21062500006",
+            proof_of_delivery: {
+              status: "submitted",
+              status_delivery: "re-delivery",
+            },
+          },
+        ],
+      },
+    ],
+    first_page_url:
+      "https://cargo.test/api/driver/shipment-plan/history?page=1",
+    from: 1,
+    next_page_url: null,
+    path: "https://cargo.test/api/driver/shipment-plan/history",
+    per_page: 10,
+    prev_page_url: null,
+    to: 1,
+  },
+};

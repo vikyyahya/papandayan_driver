@@ -1699,7 +1699,7 @@ export default function DetailOrder({ navigation, route, props }) {
               </View>
             )}
 
-            {status_pickup == "success" || status_pickup == "updated" ? (
+            {status_pickup == "success"  ? (
               <TouchableOpacity
                 onPress={() => onPrint()}
                 style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}

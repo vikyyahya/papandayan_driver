@@ -4,11 +4,7 @@ import { moderateScale, verticalScale } from "../../../util/ModerateScale";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { LOGIN_STATUS, TOKEN } from "../../../util/StringConstans";
 import { getValue, saveData } from "../../../util/AsyncStorage";
-import {
-  getData,
-  BASE_URL,
-  PROFILE,
-} from "../../../network/ApiService";
+import { getData, BASE_URL, PROFILE } from "../../../network/ApiService";
 import { Loading } from "../../../util/Loading";
 
 import {
@@ -35,6 +31,8 @@ class Profil extends Component {
       email: "",
       phone: "",
       token: "",
+      avatar: "",
+      date: new Date(),
       idSelected: "",
       data_address: [],
       data_address_receiver: [],
@@ -54,9 +52,9 @@ class Profil extends Component {
     this.setLoading(true);
     await this.setState({ token });
     await this.getDataProfile();
-  }
+    this.setState({ date: new Date() });
 
- 
+  }
 
   async getDataProfile() {
     console.log("getDataProfile token ", this.state.token);
@@ -68,12 +66,13 @@ class Profil extends Component {
         this.setState({ name: value.name });
         this.setState({ email: value.email });
         this.setState({ phone: value.phone });
+        this.setState({ avatar: value.avatar });
+        this.setState({ date: new Date() });
         this.setLoading(false);
       } else if (response.code == 4001) {
-        this.goLogout()
+        this.goLogout();
       } else if (response.message == "Unauthenticated.") {
-        this.goLogout()
-
+        this.goLogout();
       }
     });
   }
@@ -144,211 +143,57 @@ class Profil extends Component {
   renderModalProfil() {
     return (
       <Modal
-      animationType="fade"
-      transparent={true}
-      visible={this.state.modalVisibleProfile}>
-      <TouchableOpacity
-        onPress={() => {
-          this.setState({modalVisibleProfile: false});
-        }}
-        style={{
-          flex: 1,
-          backgroundColor: 'rgba(52, 52, 52, 0.3)',
-          alignItems: 'flex-end',
-        }}>
-        <TouchableWithoutFeedback>
-          <View
-            style={{
-              width: moderateScale(130),
-              height: moderateScale(100),
-              marginHorizontal: moderateScale(20),
-              marginVertical: moderateScale(70),
-              backgroundColor: 'white',
-              borderRadius: moderateScale(8),
-              padding: moderateScale(10),
-              shadowColor: '#000',
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 3.84,
-              elevation: 5,
-            }}>
-            <TouchableOpacity style={{marginVertical: verticalScale(5)}}>
-              <Text>Tentang Aplikasi</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => this.showConfirmLogout()}
-              style={{marginVertical: verticalScale(5)}}>
-              <Text>Keluar</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
-    </Modal>
- 
-    );
-  }
-
-  renderModalOptions() {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "rgba(52, 52, 52, 0.7)",
-        }}
+        animationType="fade"
+        transparent={true}
+        visible={this.state.modalVisibleProfile}
       >
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={this.state.modalOption}
-          onRequestClose={() => {
-            Alert.alert("Modal has been closed.");
+        <TouchableOpacity
+          onPress={() => {
+            this.setState({ modalVisibleProfile: false });
+          }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(52, 52, 52, 0.3)",
+            alignItems: "flex-end",
           }}
         >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Konfirmasi</Text>
-              <Text style={styles.modal_message}>{this.state.message}</Text>
-
-              <TouchableOpacity
-                style={{ ...styles.buttonYes }}
-                onPress={() => this.deleteAddress()}
-              >
-                <Text style={styles.textStyle}>Ya</Text>
+          <TouchableWithoutFeedback>
+            <View
+              style={{
+                width: moderateScale(130),
+                height: moderateScale(100),
+                marginHorizontal: moderateScale(20),
+                marginVertical: moderateScale(70),
+                backgroundColor: "white",
+                borderRadius: moderateScale(8),
+                padding: moderateScale(10),
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 2,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+                elevation: 5,
+              }}
+            >
+              <TouchableOpacity style={{ marginVertical: verticalScale(5) }}>
+                <Text>Tentang Aplikasi</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={{ ...styles.openButton }}
-                onPress={() => {
-                  this.setState({ modalOption: false });
-                }}
+                onPress={() => this.showConfirmLogout()}
+                style={{ marginVertical: verticalScale(5) }}
               >
-                <Text style={styles.textStyle}>Tidak</Text>
+                <Text>Keluar</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-      </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
+      </Modal>
     );
   }
 
-  renderAddress = ({ item, index }) => {
-    item.isCheck = false;
-    var address =
-      item.street +
-      ", " +
-      item.village +
-      ", " +
-      item.district +
-      ", " +
-      item.city +
-      ", " +
-      item.province;
-    console.log("actionCheck 3", this.state.data_address[index].isCheck);
-
-    return (
-      <View style={styles.view_options}>
-        <Image
-          style={styles.icon_location}
-          source={require("../../../assets/image/icon_location.png")}
-        ></Image>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.text_10_bold}>{item.title}</Text>
-          <Text style={styles.text_10}>{address}</Text>
-        </View>
-        <View style={styles.view_options_right}>
-          <TouchableOpacity>
-            <Image
-              style={styles.icon_edit}
-              source={require("../../../assets/image/edit.png")}
-            ></Image>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => this.actionDelete(item)}>
-            <Image
-              style={styles.icon_edit}
-              source={require("../../../assets/image/del.png")}
-            ></Image>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  renderHeaderBS() {
-    return (
-      <View style={{ justifyContent: "center", alignItems: "center" }}>
-        <View
-          style={{
-            backgroundColor: "grey",
-            height: moderateScale(5),
-            width: moderateScale(35),
-            borderRadius: moderateScale(5),
-          }}
-        ></View>
-        <View
-          style={{
-            flexDirection: "row",
-            paddingTop: verticalScale(15),
-            alignItems: "center",
-          }}
-        >
-          <TouchableOpacity
-            onPress={() =>
-              this.onSelectAddress(0, this.state.data_address_sender)
-            }
-            style={{ flex: 1 }}
-          >
-            <Text
-              style={
-                this.state.idSelected == 0
-                  ? styles.text_12_selected
-                  : styles.text_12
-              }
-            >
-              Alamat Pengirim
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              this.onSelectAddress(1, this.state.data_address_receiver)
-            }
-            style={{ flex: 1 }}
-          >
-            <Text
-              style={
-                this.state.idSelected == 1
-                  ? styles.text_12_selected
-                  : styles.text_12
-              }
-            >
-              Data Penerima
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              this.onSelectAddress(2, this.state.data_address_collector)
-            }
-            style={{ flex: 1 }}
-          >
-            <Text
-              style={
-                this.state.idSelected == 2
-                  ? styles.text_12_selected
-                  : styles.text_12
-              }
-            >
-              Alamat Penagihan
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
+ 
   render() {
     return (
       <SafeAreaView style={{ flex: 1 }}>
@@ -371,7 +216,7 @@ class Profil extends Component {
             style={{
               position: "absolute",
               right: moderateScale(20),
-              padding: moderateScale(8)
+              padding: moderateScale(8),
             }}
           >
             <View
@@ -407,7 +252,18 @@ class Profil extends Component {
           <View style={styles.view_photo_profil}>
             <Image
               style={styles.photo_profile}
-              source={require("../../../assets/image/img_profile.png")}
+              source={
+                this.state.avatar == ""
+                  ? require("../../../assets/image/user.png")
+                  : {
+                      uri:
+                        BASE_URL +
+                        "storage" +
+                        this.state.avatar +
+                        "?time=" +
+                        this.state.date,
+                    }
+              }
             ></Image>
           </View>
         </View>
@@ -421,7 +277,7 @@ class Profil extends Component {
             {this.state.phone == null ? "-" : this.state.phone}
           </Text>
           <TouchableOpacity
-            style={styles.button_primary}
+            style={[styles.button_primary, { marginTop: verticalScale(50) }]}
             onPress={() => this.gotoEditProfile()}
           >
             <Text style={styles.text_title_14}>UBAH</Text>
@@ -433,7 +289,7 @@ class Profil extends Component {
             <Text style={styles.text_title_14}>Keluar</Text>
           </TouchableOpacity> */}
         </View>
-       
+
         <Loading visible={this.state.isLoading}></Loading>
       </SafeAreaView>
     );
@@ -505,7 +361,7 @@ const styles = StyleSheet.create({
     left: moderateScale(10),
     width: moderateScale(30),
     height: moderateScale(30),
-    top: verticalScale(16)
+    top: verticalScale(16),
   },
   profil_picture: {
     width: "100%",
@@ -517,7 +373,7 @@ const styles = StyleSheet.create({
   photo_profile: {
     width: verticalScale(170),
     height: verticalScale(170),
-    resizeMode: "stretch",
+    borderRadius: verticalScale(170),
   },
   view_photo_profil: {
     position: "absolute",

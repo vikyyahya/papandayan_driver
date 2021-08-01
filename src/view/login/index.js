@@ -28,8 +28,8 @@ class Login extends Component {
     super(props);
     this.modal = React.createRef();
     this.state = {
-      userId: "driver1@gmail.com",
-      password: "driver",
+      userId: "",
+      password: "",
       message: "",
       isPassword: true,
       isUserId: true,
