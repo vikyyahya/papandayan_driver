@@ -221,6 +221,7 @@ export default function ListOrder({ navigation, route }) {
         onPress={() =>
           navigation.navigate("DetailOrder", {
             id_pickup: item.id,
+            number: item.number,
             status_pickup:
               item.proof_of_pickup == null
                 ? ""
@@ -238,7 +239,7 @@ export default function ListOrder({ navigation, route }) {
         }}
       >
         <View>
-          <Text>{item.id}</Text>
+          <Text>{item.number}</Text>
           <Text style={[styles.text_title_12, { color: "#4A4A4A" }]}>
             {item.name} {item.phone}
           </Text>

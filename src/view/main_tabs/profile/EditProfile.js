@@ -96,37 +96,42 @@ class EditProfile extends Component {
       type: "image/jpeg",
     });
 
-    await postFormData(BASE_URL + UPDATE_AVATAR, form, this.state.token).then(
-      (response) => {
-        console.log("updateProfile Picture", response);
-        if (response.success == true) {
-          let value = response.data;
-
-          this.setLoading(false);
-          this.setState({
-            dataImage: response.data.path,
-            // message: 'Profile berhasil diperbaharui',
-            // modalVisible: true,
-            // title: 'Berhasil',
-          });
-
-          this.updateProfile(response.data.path);
-        } else if (response.code == 4001) {
-          this.setLoading(false);
-          this.props.navigation.replace("Login");
-        } else if (response.message == "Unauthenticated.") {
-          this.setLoading(false);
-          this.props.navigation.replace("Login");
-        } else {
-          this.setLoading(false);
-          this.setState({
-            message: response.message,
-            modalVisible: true,
-            title: "Opss",
-          });
+    if(data == ""){
+      this.updateProfile();
+    }else{
+      await postFormData(BASE_URL + UPDATE_AVATAR, form, this.state.token).then(
+        (response) => {
+          console.log("updateProfile Picture", response);
+          if (response.success == true) {
+            let value = response.data;
+  
+            this.setLoading(false);
+            this.setState({
+              dataImage: response.data.path,
+              // message: 'Profile berhasil diperbaharui',
+              // modalVisible: true,
+              // title: 'Berhasil',
+            });
+  
+            this.updateProfile(response.data.path);
+          } else if (response.code == 4001) {
+            this.setLoading(false);
+            this.props.navigation.replace("Login");
+          } else if (response.message == "Unauthenticated.") {
+            this.setLoading(false);
+            this.props.navigation.replace("Login");
+          } else {
+            this.setLoading(false);
+            this.setState({
+              message: response.message,
+              modalVisible: true,
+              title: "Opss",
+            });
+          }
         }
-      }
-    );
+      );
+    }
+   
   }
 
   async updateProfile(data) {

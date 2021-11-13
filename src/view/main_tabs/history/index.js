@@ -61,13 +61,15 @@ export default function History({ navigation }) {
     var params = {
       // startDate: moment().format("YYYY-MM-DD"),
       endDate: moment().format("YYYY-MM-DD"),
-      startDate: moment("2021-03-03").format("YYYY-MM-DD"),
+      startDate: moment().format("YYYY-MM-DD")
+      // startDate: moment().startOf('day').subtract(1,'month').format("YYYY-MM-DD"),
     };
 
     console.log("params", params);
     await postData(BASE_URL + HISTORY_POP, params, token)
       .then((response) => {
-        console.log("response", response);
+        console.log("response HISTORY_POP", response);
+        console.log("response HISTORY_POP", response.data.data);
         setIsLoading(false);
         setIsRefresh(false);
         if (response.success) {
@@ -169,6 +171,7 @@ export default function History({ navigation }) {
   const renderItem = ({ item, index }) => {
     // const backgroundColor = item.id === selectedId ? "#6e3b6e" : "#f9c2ff";
     // const color = item.id === selectedId ? "white" : "black";
+    console.log("renderItem", item);
 
     return (
       <View>
@@ -176,7 +179,7 @@ export default function History({ navigation }) {
           onPress={() => isSelectList(item, index)}
           style={{
             flexDirection: "row",
-            alignItems: "center",
+            // alignItems: "center",
             // backgroundColor: "#FFFFFF",
           }}
         >
@@ -185,16 +188,18 @@ export default function History({ navigation }) {
               style={{
                 height: moderateScale(12),
                 width: moderateScale(12),
-                marginRight: moderateScale(10),
                 backgroundColor: "#A80002",
                 borderRadius: 50,
               }}
             />
+            <View
+            style={{width: moderateScale(1),height:verticalScale(40),backgroundColor: "black"}}
+            />
           </View>
 
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1,marginLeft: moderateScale(12) }}>
             <Text
-              style={[styles.text_bold_14, { marginTop: verticalScale(10) }]}
+              style={[styles.text_bold_14]}
             >
               #0930.14482340
             </Text>
@@ -227,9 +232,9 @@ export default function History({ navigation }) {
         {item.id === selectedId && (
           <View
             style={{
-              borderLeftWidth: 1,
+              borderLeftWidth: moderateScale(0.5),
               borderBottomColor: "#8D8F92",
-              marginLeft: moderateScale(5),
+              marginLeft: moderateScale(5.5),
             }}
           >
             {item.pickups.map((data, index) => {
@@ -251,7 +256,22 @@ export default function History({ navigation }) {
                         { color: "#8D8F92", marginTop: verticalScale(5) },
                       ]}
                     >
-                      xxxxxx
+                      {data.name + " " + data.phone}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.text_title_12,
+                        { color: "#8D8F92", marginTop: verticalScale(5) },
+                      ]}
+                    >
+                      {data.sender.street +
+                        " " +
+                        data.sender.district +
+                        " " +
+                        data.sender.city +
+                        " " +
+                        data.sender.province}
                     </Text>
                   </View>
 

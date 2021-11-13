@@ -33,6 +33,8 @@ import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 
 export default function Home({ navigation, route }) {
+  const { status } = route.params;
+
   const [data_pickup, setDataPickup] = useState([]);
   const [selectedId, setSelectedId] = useState(0);
   const [name, setName] = useState("");
@@ -44,7 +46,6 @@ export default function Home({ navigation, route }) {
     const unsubscribe = navigation.addListener("focus", () => {
       // getUrlVoice();
       if (route.params != undefined) {
-        const { status } = route.params;
         getPickupPlan(status);
       } else {
         getPickupPlan(false);
@@ -93,16 +94,21 @@ export default function Home({ navigation, route }) {
     });
   };
 
+  const customSort = (a, b) => {
+    console.log("customSort");
+    // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return moment(b.created_at) - moment(a.created_at);
+  };
+
   const getPickupPlan = async (isDate) => {
     var token = await getValue(TOKEN);
     var date = moment().format("YYYY-MM-DD");
     var startDate = moment().subtract(5, "d").format("YYYY-MM-DD");
-    var parans = {
+    var params = {
       perPage: 20,
       id: "",
       page: 1,
-      startDate:
-        isDate == true ? date : startDate,
+      startDate: status == true ? date : startDate,
       endDate: date,
       licenseNumber: "",
       status: "",
@@ -113,13 +119,16 @@ export default function Home({ navigation, route }) {
       },
     };
 
-    console.log("params ", parans);
-    await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
+    console.log("params ", params);
+    await postData(BASE_URL + PICKUP_DRIVER, params, token).then((response) => {
       console.log("response getPIckup home", response);
       setIsRefresh(false);
       setIsLoading(false);
       if (response.success == true) {
-        setDataPickup(response.data.data);
+        var dataPickup = [];
+        dataPickup = response.data.data;
+        dataPickup.sort(customSort);
+        setDataPickup(dataPickup);
         console.log("response getPIckup home", response.data.data);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
@@ -129,7 +138,7 @@ export default function Home({ navigation, route }) {
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
-    getPickupPlan();
+    getPickupPlan(status);
   }, [isRefresh]);
 
   const renderListEmpty = () => {
@@ -152,8 +161,17 @@ export default function Home({ navigation, route }) {
   };
 
   const renderItem = ({ item, index }) => {
-    console.log("data", item);
+    console.log("renderItem", item);
     var date = moment(item.created_at).format("YYYY-MM-DD");
+    var data_pickup = [];
+    var applied = 0;
+    var updated = 0;
+    var failed = 0;
+    data_pickup = item.pickups;
+
+    if(data_pickup.length > 0){
+
+    }
 
     return (
       <TouchableOpacity
@@ -213,7 +231,7 @@ export default function Home({ navigation, route }) {
           }}
         >
           <Text style={styles.text_12}>
-            <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/{" "}
+            {/* <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/{" "} */}
             {item.total_pickup_order}
           </Text>
         </View>
@@ -241,7 +259,7 @@ export default function Home({ navigation, route }) {
             <Text style={styles.text_16_bold}> {name}</Text>
           </Text>
           <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>
-            Hari ini ada {data_pickup.length} Pickup Plan untuk kamu
+            Ada {data_pickup.length} Pickup Plan untuk kamu
           </Text>
         </View>
       </View>

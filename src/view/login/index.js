@@ -4,10 +4,11 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import CheckBox from "@react-native-community/checkbox";
 import LogoGoogle from "../../assets/image/logo_google.svg";
 import { postData } from "../../network/ApiService";
-import { BASE_URL, LOGIN } from "../../network/ApiService";
+import { BASE_URL, LOGIN, FORGOTPASS } from "../../network/ApiService";
 import Modals from "../../util/Modal";
 import { saveData } from "../../util/AsyncStorage";
 import { LOGIN_STATUS, TOKEN } from "../../util/StringConstans";
+import { ModalWarning } from "../../util/CustModal";
 
 import {
   Text,
@@ -18,9 +19,11 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
+  Linking,
 } from "react-native";
 
 class Login extends Component {
@@ -28,15 +31,21 @@ class Login extends Component {
     super(props);
     this.modal = React.createRef();
     this.state = {
-      userId: "",
-      password: "",
+      userId: "Jasminrendra90@gmail.com",
+      password: "2dgFgrWI",
+      title: "",
       message: "",
       isPassword: true,
       isUserId: true,
       stay_login: false,
       isLoading: false,
       isForm: false,
-      modalVisible: false
+      modalVisible: false,
+
+      isModalWarning: false,
+      messageModal: "",
+      forgot_password: "",
+      modalVisibleForgot: false,
     };
   }
   componentDidMount() {}
@@ -49,12 +58,12 @@ class Login extends Component {
 
   goCallAdmin() {
     // this.props.navigation.navigate("Register");
-    Linking.openURL(`tel:${"0213456789"}`);
+    Linking.openURL(`tel:${"(031) 8546393"}`);
   }
 
   async goToHome() {
     this.setLoading(true);
-    await this.setState({isPassword: true, isUserId: true})
+    await this.setState({ isPassword: true, isUserId: true });
     var params = {
       userId: this.state.userId,
       password: this.state.password,
@@ -79,12 +88,15 @@ class Login extends Component {
         } else if (response.data == "4004") {
           this.setLoading(false);
           this.setState({ isUserId: false, message: response.message });
-        }
-        else if (response.data == "4005") {
+        } else if (response.data == "4005") {
           this.setLoading(false);
           this.setState({ isPassword: false, message: response.message });
         } else {
           this.setLoading(false);
+          this.setState({
+            isModalWarning: true,
+            messageModal: response.message,
+          });
         }
       })
       .catch((error) => {
@@ -97,6 +109,89 @@ class Login extends Component {
   }
   setmodal() {
     this.modal.setModalErrorVisible(true);
+  }
+
+  async onForgotPassword() {
+    if (this.state.forgot_password == "") {
+      this.setState({
+        modalVisible: true,
+        message: "Harap isi username / email",
+        title: "Maaf",
+      });
+
+      return false;
+    }
+
+    this.setState({ modalVisibleForgot: false });
+    this.setLoading(true);
+
+    var params = {
+      username: this.state.forgot_password,
+    };
+    console.log("forgot password 1", BASE_URL + FORGOTPASS + " " + params);
+
+    await postData(BASE_URL + FORGOTPASS, params, "")
+      .then((response) => {
+        console.log("forgot password ", response);
+        this.setLoading(false);
+        if (response.success) {
+          this.setState({
+            modalVisible: true,
+            message: "Silahkan cek email anda",
+            title: "Berhasil",
+          });
+        } else {
+          this.setState({
+            modalVisible: true,
+            message: response.message,
+            title: "Maaf",
+          });
+        }
+      })
+      .catch((error) => {
+        console.log("forgot password err", error);
+        this.setLoading(false);
+      });
+  }
+
+  renderModalForgotPassword() {
+    return (
+      <View style={styles.centeredView}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.modalVisibleForgot}
+        >
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => this.setState({ modalVisibleForgot: false })}
+            style={styles.centeredView}
+          >
+            <TouchableWithoutFeedback>
+              <View style={styles.modalView}>
+                <Text style={styles.modalTextForgot}>
+                  Masukkan username / email
+                </Text>
+                <TextInput
+                  value={this.state.forgot_password}
+                  style={styles.text_input_forgot_password}
+                  placeholder="Username / Email"
+                  onChangeText={(forgot_password) =>
+                    this.setState({ forgot_password })
+                  }
+                ></TextInput>
+                <TouchableOpacity
+                  style={{ ...styles.openButton }}
+                  onPress={() => this.onForgotPassword()}
+                >
+                  <Text style={styles.textStyle}>Ok</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </TouchableOpacity>
+        </Modal>
+      </View>
+    );
   }
 
   renderModal() {
@@ -112,7 +207,7 @@ class Login extends Component {
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
-              <Text style={styles.modalText}>Opps!</Text>
+              <Text style={styles.modalText}>{this.state.title}</Text>
               <Text style={styles.modal_message}>{this.state.message}</Text>
 
               <TouchableOpacity
@@ -141,6 +236,7 @@ class Login extends Component {
           <View style={styles.container}>
             {/* <Modals onModal={(ref) => (this.modal = ref)} ></Modals> */}
             {this.renderModal()}
+            {this.renderModalForgotPassword()}
 
             <Image
               source={require("../../assets/image/logo_red.png")}
@@ -191,7 +287,9 @@ class Login extends Component {
                   Biarkan saya tetap login di perangkat ini
                 </Text>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => this.setState({ modalVisibleForgot: true })}
+              >
                 <Text style={styles.center_text_red}>Lupa Kata Kunci?</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -227,6 +325,11 @@ class Login extends Component {
             color="#A80002"
           />
         )}
+        <ModalWarning
+          visible={this.state.isModalWarning}
+          message={this.state.messageModal}
+          onOk={() => this.setState({ isModalWarning: false })}
+        />
       </SafeAreaView>
     );
   }
@@ -402,6 +505,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     fontFamily: "Montserrat-Regular",
+  },
+  text_input_forgot_password: {
+    backgroundColor: "#F0F0F0",
+    borderRadius: moderateScale(12),
+    marginTop: verticalScale(8),
+    fontSize: moderateScale(12),
+    paddingStart: moderateScale(16),
+    fontFamily: "Montserrat-Regular",
+    height: verticalScale(46),
+    width: "90%",
+  },
+  modalTextForgot: {
+    marginBottom: 10,
+    fontSize: 16,
+    textAlign: "center",
+    fontFamily: "Montserrat-Bold",
   },
 });
 

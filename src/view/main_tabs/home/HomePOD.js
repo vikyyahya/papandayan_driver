@@ -32,7 +32,9 @@ import {
 import { Icon } from "native-base";
 const { width, height } = Dimensions.get("window");
 
-export default function HomePOD({ navigation }) {
+export default function HomePOD({ navigation ,route}) {
+  const { status } = route.params;
+
   const [data_pickup, setDataPickup] = useState([]);
   const [selectedId, setSelectedId] = useState(0);
   const [name, setName] = useState("");
@@ -71,12 +73,20 @@ export default function HomePOD({ navigation }) {
     });
   };
 
+  const customSort = (a, b) => {
+    console.log("customSort");
+    // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return moment(b.created_at) - moment(a.created_at);
+  };
+
   const getPickupPlan = async () => {
     var token = await getValue(TOKEN);
     var date = moment().format("YYYY-MM-DD");
+    var startDate = moment().subtract(15, "d").format("YYYY-MM-DD");
+
 
     let params = {
-      startDate: moment().subtract(5, "d").format("YYYY-MM-DD"),
+      startDate: status == true ? date : startDate,
       endDate: date,
     };
 
@@ -90,7 +100,10 @@ export default function HomePOD({ navigation }) {
       setIsRefresh(false);
 
       if (response.success == true) {
-        setDataPickup(response.data);
+        var dataPickup = [];
+        dataPickup = response.data;
+        dataPickup.sort(customSort);
+        setDataPickup(dataPickup);
         console.log("response getPIckup home2", response.data);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
@@ -181,7 +194,7 @@ export default function HomePOD({ navigation }) {
           }}
         >
           <Text style={styles.text_12}>
-            <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/{" "}
+            {/* <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/{" "} */}
             {item.pickups.length}
           </Text>
         </View>

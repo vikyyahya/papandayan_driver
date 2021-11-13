@@ -29,12 +29,12 @@ class Header extends Component {
           ></Image>
         </View>
 
-        <View style={styles.view_logo_phone}>
+        {/* <View style={styles.view_logo_phone}>
           <Image
             source={require("../assets/image/ic_bantuan.png")}
             style={styles.logo_header_help}
           ></Image>
-        </View>
+        </View> */}
       </View>
     );
   }

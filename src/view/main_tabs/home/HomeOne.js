@@ -47,6 +47,14 @@ export default function HomeOne({ navigation }) {
     { label: "Total Pembatalan Pickup", totalSuccess: 0, totalData: 0 },
     { label: "Total Pembatalan Delivery", totalSuccess: 0, totalData: 0 },
   ]);
+  const [total_selesai_pop, settotalSelesaiPop] = useState(0);
+  const [total_pop, setTotalPop] = useState(0);
+
+  const [total_selesai_pod, settotalSelesaiPod] = useState(0);
+  const [total_pod, setTotalPod] = useState(0);
+
+  const [total_pembatalan_pop, setPembatalanPOP] = useState(0);
+  const [total_pembatalan_pod, setPembatalanPOD] = useState(0);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -56,12 +64,13 @@ export default function HomeOne({ navigation }) {
       getDataTotalPOP();
       getDataTotalPOD();
       handleTime();
+      // _onRefresh();
     });
     return unsubscribe;
   }, []);
 
   useEffect(() => {
-    setIsLoading(true);
+    // setIsLoading(true);
     // getPickupPlan();
     getDataProfile();
     getDataTotalPOP();
@@ -104,10 +113,12 @@ export default function HomeOne({ navigation }) {
       endDate: moment().format("YYYY-MM-DD"),
     };
 
-    console.log("params", params);
+    console.log("params getDataTotalPOP", params);
 
     await postData(BASE_URL + TOTAL_POP, params, token).then((response) => {
       console.log("response getDataTotalPOP", response);
+      setIsLoading(false);
+
       if (response.success == true) {
         var tmpLength = 0;
         var tmpSuccess = 0;
@@ -118,10 +129,13 @@ export default function HomeOne({ navigation }) {
           tmpSuccess += data.total_draft_pop;
           tmpCancelled += data.total_cancelled_pop;
         });
+        settotalSelesaiPop(tmpSuccess);
         tmpDataDashboard[0].totalData = tmpLength;
         tmpDataDashboard[0].totalSuccess = tmpSuccess;
         tmpDataDashboard[2].totalSuccess = tmpCancelled;
+        tmpDataDashboard[2].totalData = tmpCancelled;
         setdataDashboard(tmpDataDashboard);
+        setSelectedId(tmpSuccess);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -136,10 +150,12 @@ export default function HomeOne({ navigation }) {
       // startDate:"",
       // endDate: "",
     };
-    console.log("response getDataTotalPOD", params);
+    console.log("param getDataTotalPOD", params);
 
     await postData(BASE_URL + TOTAL_POD, params, token).then((response) => {
       console.log("response getDataTotalPOD", response);
+      setIsLoading(false);
+
       if (response.success == true) {
         var tmpLength = 0;
         var tmpSuccess = 0;
@@ -152,9 +168,10 @@ export default function HomeOne({ navigation }) {
         tmpDataDashboard[1].totalData = tmpLength;
         tmpDataDashboard[1].totalSuccess = tmpSuccess;
         tmpDataDashboard[3].totalSuccess = tmpCancelled;
+        tmpDataDashboard[3].totalData = tmpCancelled;
         setdataDashboard(tmpDataDashboard);
+        setSelectedId(tmpSuccess);
         setIsRefresh(false);
-        setIsLoading(false);
       } else if (response.message == "Unauthenticated.") {
         goLogout();
       }
@@ -164,7 +181,9 @@ export default function HomeOne({ navigation }) {
   const getDataProfile = async () => {
     let token = await getValue(TOKEN);
     await getData(BASE_URL + PROFILE, token).then((response) => {
-      console.log("getDataProfile ", response);
+      // console.log("getDataProfile ", response);
+      setIsLoading(false);
+
       if (response.success == true) {
         let value = response.data;
         setName(response.data.username);
@@ -196,6 +215,7 @@ export default function HomeOne({ navigation }) {
     await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
       console.log("response getPIckup home", response);
       setIsLoading(false);
+
       if (response.success == true) {
         setDataPickup(response.data.data);
         console.log("response getPIckup home", response.data.data);
@@ -207,34 +227,10 @@ export default function HomeOne({ navigation }) {
 
   const _onRefresh = React.useCallback(async () => {
     setIsRefresh(true);
-    var token = await getValue(TOKEN);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
-    var parans = {
-      perPage: 10,
-      id: "",
-      page: 1,
-      startDate: moment().format("YYYY-MM-DD"),
-      endDate: moment().format("YYYY-MM-DD"),
-      licenseNumber: "",
-      status: "",
-      vehicleType: "",
-      sort: {
-        field: "",
-        order: "",
-      },
-    };
+
     await resetDataDashboard();
     await getDataTotalPOP();
     await getDataTotalPOD();
-    // await postData(BASE_URL + PICKUP_DRIVER, parans, token).then((response) => {
-    //   console.log("response getPIckup home", response);
-    //   if (response.success == true) {
-    //     setDataPickup(response.data.data);
-    //     setIsRefresh(false);
-    //   } else if (response.message == "Unauthenticated.") {
-    //     goLogout();
-    //   }
-    // });
   }, [isRefresh]);
 
   const onSelectDashboard = (index) => {
@@ -265,6 +261,18 @@ export default function HomeOne({ navigation }) {
     }
   };
 
+  const cust_style = () => {
+    return {
+      width: moderateScale(48),
+      height: moderateScale(48),
+      backgroundColor: bg,
+      borderRadius: moderateScale(50),
+      justifyContent: "center",
+      alignItems: "center",
+      marginHorizontal: moderateScale(12),
+    };
+  };
+
   const renderListEmpty = () => {
     return (
       <View
@@ -285,6 +293,17 @@ export default function HomeOne({ navigation }) {
   };
 
   const renderItem = ({ item, index }) => {
+    var bg = "";
+    var text_colour = "#000000";
+    if (item.totalSuccess == 0 && item.totalData == 0) {
+      bg = "#E5E5E5";
+    } else if (item.totalSuccess == item.totalData) {
+      bg = "#1EB448";
+      text_colour = "#ffffff";
+    } else {
+      bg = "#f01d20";
+      text_colour = "#ffffff";
+    }
     return (
       <TouchableOpacity
         onPress={() => onSelectDashboard(index)}
@@ -323,19 +342,27 @@ export default function HomeOne({ navigation }) {
           style={{
             width: moderateScale(48),
             height: moderateScale(48),
-            backgroundColor: "#E5E5E5",
+            backgroundColor: bg,
             borderRadius: moderateScale(50),
             justifyContent: "center",
             alignItems: "center",
             marginHorizontal: moderateScale(12),
           }}
         >
-          <Text style={styles.text_12}>
-            <Text style={[styles.text_14_bold, { color: "#000000" }]}>
-              {item.totalSuccess}
+          {(index == 2 || index == 3) && (
+            <Text style={[styles.text_12, { color: text_colour }]}>
+              {item.totalData}
             </Text>
-            /{item.totalData}
-          </Text>
+          )}
+
+          {(index == 0 || index == 1) && (
+            <Text style={[styles.text_12, { color: text_colour }]}>
+              <Text style={[styles.text_14_bold, { color: text_colour }]}>
+                {item.totalSuccess}
+              </Text>
+              /{item.totalData}
+            </Text>
+          )}
         </View>
         <Image
           style={{
@@ -354,115 +381,134 @@ export default function HomeOne({ navigation }) {
       <StatusBar barStyle={"light-content"} backgroundColor="#A80002" />
       <Header></Header>
 
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={[styles.text_16]}>
-            Selamat {data_time}
-            <Text style={styles.text_16_bold}> {name}</Text>
-          </Text>
-          <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>
-            Hari ini anda sudah menyelesaikan{" "}
-            <Text style={[styles.text_14_bold, { color: "#1EB448" }]}>
-              {dataDashboard[0].totalSuccess} Pickup Plan{" "}
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            colors={["#9Bd35A", "#689F38"]}
+            refreshing={isRefresh}
+            onRefresh={_onRefresh}
+          />
+        }
+      >
+        <View style={styles.container}>
+          <View style={styles.content}>
+            <Text style={[styles.text_16]}>
+              Selamat {data_time}
+              <Text style={styles.text_16_bold}> {name}</Text>
             </Text>
-            dan sisa{" "}
-            <Text style={[styles.text_14_bold, { color: "#A80002" }]}>
-              {" "}
-              {dataDashboard[3].totalSuccess} Delivery Plan{" "}
-            </Text>{" "}
-            yang belum diselesaikan.
-          </Text>
+            <Text style={[styles.text_12, { marginTop: verticalScale(5) }]}>
+              Hari ini anda sudah menyelesaikan{" "}
+              <Text style={[styles.text_14_bold, { color: "#1EB448" }]}>
+                {total_selesai_pop} Pickup Plan{" "}
+              </Text>
+              dan sisa{" "}
+              <Text style={[styles.text_14_bold, { color: "#A80002" }]}>
+                {" "}
+                {dataDashboard[3].totalSuccess} Delivery Plan{" "}
+              </Text>{" "}
+              yang belum diselesaikan.
+            </Text>
+          </View>
         </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          paddingHorizontal: moderateScale(20),
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.navigate("POP")}
+        <View
           style={{
-            flex: 1,
-            backgroundColor: "#FFFFFF",
-            width: moderateScale(164),
-            height: moderateScale(164),
-            marginRight: moderateScale(7),
-            borderRadius: moderateScale(20),
+            flexDirection: "row",
+            paddingHorizontal: moderateScale(20),
             justifyContent: "center",
             alignItems: "center",
-            padding: moderateScale(7),
           }}
         >
-          <Image
-            source={require("../../../assets/image/ic_pickup_green.png")}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("POP", {
+                status: false,
+              })
+            }
             style={{
-              width: moderateScale(80),
-              height: moderateScale(80),
-              resizeMode: "stretch",
+              flex: 1,
+              backgroundColor: "#FFFFFF",
+              width: moderateScale(164),
+              height: moderateScale(164),
+              marginRight: moderateScale(7),
+              borderRadius: moderateScale(20),
+              justifyContent: "center",
+              alignItems: "center",
+              padding: moderateScale(7),
             }}
-          ></Image>
-          <Text style={styles.text_14_bold}>Proof of Pickup</Text>
-          <Text style={[styles.text_12, { textAlign: "center" }]}>
-            Pilih menu ini untuk melihat Pickup Plan
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("HomePOD")}
-          style={{
-            flex: 1,
-            backgroundColor: "#FFFFFF",
-            width: moderateScale(164),
-            height: moderateScale(164),
-            marginLeft: moderateScale(7),
-            borderRadius: moderateScale(20),
-            justifyContent: "center",
-            alignItems: "center",
-            padding: moderateScale(7),
-          }}
-        >
-          <Image
-            source={require("../../../assets/image/ic_delivery_green.png")}
+          >
+            <Image
+              source={require("../../../assets/image/ic_pickup_green.png")}
+              style={{
+                width: moderateScale(80),
+                height: moderateScale(80),
+                resizeMode: "stretch",
+              }}
+            ></Image>
+            <Text style={styles.text_14_bold}>Proof of Pickup</Text>
+            <Text style={[styles.text_12, { textAlign: "center" }]}>
+              Pilih menu ini untuk melihat Pickup Plan
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("HomePOD", {
+                status: false,
+              })
+            }
             style={{
-              width: moderateScale(80),
-              height: moderateScale(80),
-              resizeMode: "stretch",
+              flex: 1,
+              backgroundColor: "#FFFFFF",
+              width: moderateScale(164),
+              height: moderateScale(164),
+              marginLeft: moderateScale(7),
+              borderRadius: moderateScale(20),
+              justifyContent: "center",
+              alignItems: "center",
+              padding: moderateScale(7),
             }}
-          ></Image>
-          <Text style={styles.text_14_bold}>Proof of Delivery</Text>
-          <Text style={[styles.text_12, { textAlign: "center" }]}>
-            Pilih menu ini untuk melihat Delivery Plan
-          </Text>
-        </TouchableOpacity>
-      </View>
+          >
+            <Image
+              source={require("../../../assets/image/ic_delivery_green.png")}
+              style={{
+                width: moderateScale(80),
+                height: moderateScale(80),
+                resizeMode: "stretch",
+              }}
+            ></Image>
+            <Text style={styles.text_14_bold}>Proof of Delivery</Text>
+            <Text style={[styles.text_12, { textAlign: "center" }]}>
+              Pilih menu ini untuk melihat Delivery Plan
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <View
-        style={{
-          flex: 1,
-          width: width,
-          paddingHorizontal: moderateScale(20),
-          marginTop: verticalScale(20),
-        }}
-      >
-        <Text style={styles.text_14_bold}>Hari Ini</Text>
-        <FlatList
-          data={dataDashboard}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => index.toString()}
-          extraData={selectedId}
-          ListEmptyComponent={renderListEmpty}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              colors={["#9Bd35A", "#689F38"]}
-              refreshing={isRefresh}
-              onRefresh={_onRefresh}
-            />
-          }
-        />
-      </View>
+        <View
+          style={{
+            flex: 1,
+            width: width,
+            paddingHorizontal: moderateScale(20),
+            marginTop: verticalScale(20),
+          }}
+        >
+          <Text style={styles.text_14_bold}>Hari Ini</Text>
+          <FlatList
+            data={dataDashboard}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            extraData={selectedId}
+            ListEmptyComponent={renderListEmpty}
+            showsVerticalScrollIndicator={false}
+            // refreshControl={
+            //   <RefreshControl
+            //     colors={["#9Bd35A", "#689F38"]}
+            //     refreshing={isRefresh}
+            //     onRefresh={_onRefresh}
+            //   />
+            // }
+          />
+        </View>
+      </ScrollView>
+
       <Loading visible={isLoading}></Loading>
     </SafeAreaView>
   );
@@ -569,7 +615,7 @@ const styles = StyleSheet.create({
   text_12: {
     textAlign: "left",
     fontFamily: "Montserrat-Regular",
-    fontSize: 12,
+    fontSize: moderateScale(10),
   },
   text_12_bold: {
     textAlign: "left",
@@ -591,7 +637,7 @@ const styles = StyleSheet.create({
   },
   text_14_bold: {
     fontFamily: "Montserrat-Bold",
-    fontSize: 14,
+    fontSize: moderateScale(12),
   },
   view_accordion: {
     height: verticalScale(46),

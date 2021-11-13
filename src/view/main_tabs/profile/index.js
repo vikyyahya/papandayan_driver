@@ -161,7 +161,7 @@ class Profil extends Component {
             <View
               style={{
                 width: moderateScale(130),
-                height: moderateScale(100),
+                height: moderateScale(50),
                 marginHorizontal: moderateScale(20),
                 marginVertical: moderateScale(70),
                 backgroundColor: "white",
@@ -177,9 +177,9 @@ class Profil extends Component {
                 elevation: 5,
               }}
             >
-              <TouchableOpacity style={{ marginVertical: verticalScale(5) }}>
+              {/* <TouchableOpacity style={{ marginVertical: verticalScale(5) }}>
                 <Text>Tentang Aplikasi</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               <TouchableOpacity
                 onPress={() => this.showConfirmLogout()}
                 style={{ marginVertical: verticalScale(5) }}

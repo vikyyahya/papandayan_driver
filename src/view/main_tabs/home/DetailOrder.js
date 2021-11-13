@@ -17,6 +17,7 @@ import {
   CREATE_ITEM_DRIVER,
   UPLOAD_PICTURE_POP,
   postData,
+  PICTURE_POD,
   getData,
   GET_ROUTE,
   GET_PRICE,
@@ -71,7 +72,7 @@ const { width, height } = Dimensions.get("window");
 const snapPoints = [0, height / 2, "70%", "100%"];
 
 export default function DetailOrder({ navigation, route, props }) {
-  const { id_pickup, status_pickup } = route.params;
+  const { id_pickup, status_pickup, number } = route.params;
 
   const [reason, setReason] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -86,6 +87,7 @@ export default function DetailOrder({ navigation, route, props }) {
   const [dataImage, setDataImage] = useState("");
   const [uriImage, setUriImage] = useState("");
   const [id_route, setIdRoute] = useState("");
+  const [dataPicture, setDataPictureURL] = useState("");
 
   const [dataItemsTemporary, setDataTemp] = useState({
     id: "",
@@ -154,7 +156,7 @@ export default function DetailOrder({ navigation, route, props }) {
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      console.warn("onFocus", "focus");
+      // console.warn("onFocus", "focus");
       // The screen is focused
       // Call any action
     });
@@ -165,7 +167,7 @@ export default function DetailOrder({ navigation, route, props }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      // getUrlVoice();
+      getPicture();
       getPickupPlan();
       getAllUnit();
       getAllServices();
@@ -179,6 +181,27 @@ export default function DetailOrder({ navigation, route, props }) {
     getAllServices();
   }, []);
 
+  const getPicture = async () => {
+    var token = await getValue(TOKEN);
+    setIsLoading(true);
+    var params = {
+      pickupId: id_pickup,
+      docs: "proof-of-pickup",
+    };
+    console.log("getPicture ", params);
+
+    await postData(BASE_URL + PICTURE_POD, params, token)
+      .then((response) => {
+        console.log("response getPicture", response.data);
+        setIsLoading(false);
+
+        if (response.success == true) {
+          setDataPictureURL(response.data[0].picture);
+        }
+      })
+      .catch((error) => {});
+  };
+
   const validationForm = () => {
     if (status == "") {
       return false;
@@ -186,68 +209,91 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const onSaveItem = async () => {
-    var token = await getValue(TOKEN);
-    refBottomSheet.current.snapTo(0);
-    setIsLoading(true);
-    var params = {
-      itemId: dataItemsTemporary.id,
-      name: dataItemsTemporary.name,
-      total: dataItemsTemporary.unit_total,
-      count: dataItemsTemporary.unit_count,
-      serviceId: dataItemsTemporary.service_id,
-      weight: dataItemsTemporary.weight,
-      volume: dataItemsTemporary.volume,
-      type: dataItemsTemporary.type_id,
-      unit: dataItemsTemporary.unit,
-      routePriceId: dataItemsTemporary.type_id,
-    };
-    if (typeForm == "add") {
-      params = {
-        pickupId: id_pickup,
+    if (dataItemsTemporary.name == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi nama barang");
+    } else if (dataItemsTemporary.unit_count == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi jumlah barang");
+    } else if (dataItemsTemporary.unit == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap pilih satuan");
+    } else if (dataItemsTemporary.weight == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi berat barang");
+    } else if (dataItemsTemporary.type == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap pilih jenis barang");
+    } else if (dataItemsTemporary.volume == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi volume");
+    } else if (dataItemsTemporary.service_id == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap pilih layanan");
+    } else {
+      var token = await getValue(TOKEN);
+      refBottomSheet.current.snapTo(0);
+      setIsLoading(true);
+      var params = {
+        itemId: dataItemsTemporary.id,
         name: dataItemsTemporary.name,
+        total: dataItemsTemporary.unit_total,
+        count: dataItemsTemporary.unit_count,
+        serviceId: dataItemsTemporary.service_id,
         weight: dataItemsTemporary.weight,
         volume: dataItemsTemporary.volume,
-        count: dataItemsTemporary.unit_count,
-        unit: dataItemsTemporary.unit,
-        serviceId: dataItemsTemporary.service_id,
-        routePriceId: dataItemsTemporary.type_id,
         type: dataItemsTemporary.type_id,
+        unit: dataItemsTemporary.unit,
+        routePriceId: dataItemsTemporary.type_id,
       };
-      console.log("Params  onSaveItem", params);
+      if (typeForm == "add") {
+        params = {
+          pickupId: id_pickup,
+          name: dataItemsTemporary.name,
+          weight: dataItemsTemporary.weight,
+          volume: dataItemsTemporary.volume,
+          count: dataItemsTemporary.unit_count,
+          unit: dataItemsTemporary.unit,
+          serviceId: dataItemsTemporary.service_id,
+          routePriceId: dataItemsTemporary.type_id,
+          type: dataItemsTemporary.type_id,
+        };
+        console.log("Params  onSaveItem", params);
 
-      await postData(BASE_URL + CREATE_ITEM_DRIVER, params, token)
-        .then((response) => {
-          console.log("response CREATE_ITEM_DRIVER", response);
-          if (response.success == true) {
-            setIsLoading(false);
-            // setIsModalSuccess(true)
-            getPickupPlan();
-          } else {
-            setIsLoading(false);
-            setIsModalWarning(true);
-            setMessageModalWarning(response.message);
-          }
-        })
-        .catch((error) => {
-          console.log("response error", error);
-        });
-    } else {
-      await postData(BASE_URL + EDIT_ITEM_DRIVER, params, token)
-        .then((response) => {
-          console.log("response  onSaveItem", response);
-          if (response.success == true) {
-            setIsLoading(false);
-            // setIsModalSuccess(true)
-            getPickupPlan();
-          } else {
-            setIsLoading(false);
-            setIsModalWarning(true);
-            setMessageModalWarning(response.message);
-          }
-        })
-        .catch((error) => {
-          console.log("response error", error);
-        });
+        await postData(BASE_URL + CREATE_ITEM_DRIVER, params, token)
+          .then((response) => {
+            console.log("response CREATE_ITEM_DRIVER", response);
+            if (response.success == true) {
+              setIsLoading(false);
+              // setIsModalSuccess(true)
+              getPickupPlan();
+            } else {
+              setIsLoading(false);
+              setIsModalWarning(true);
+              setMessageModalWarning(response.message);
+            }
+          })
+          .catch((error) => {
+            console.log("response error", error);
+          });
+      } else {
+        await postData(BASE_URL + EDIT_ITEM_DRIVER, params, token)
+          .then((response) => {
+            console.log("response  onSaveItem", response);
+            if (response.success == true) {
+              setIsLoading(false);
+              // setIsModalSuccess(true)
+              getPickupPlan();
+            } else {
+              setIsLoading(false);
+              setIsModalWarning(true);
+              setMessageModalWarning(response.message);
+            }
+          })
+          .catch((error) => {
+            console.log("response error", error);
+          });
+      }
     }
   };
 
@@ -255,6 +301,9 @@ export default function DetailOrder({ navigation, route, props }) {
     if (reason != "") {
       submitPickup();
       setModalVisible(false);
+    } else {
+      setIsModalWarning(true);
+      setMessageModalWarning("Alasan pembatalan wajib diisi");
     }
   };
 
@@ -265,33 +314,42 @@ export default function DetailOrder({ navigation, route, props }) {
       sts = "success";
     } else if (status == "failed") {
       sts = "failed";
-    } else {
+    } else if (status == "updated") {
       sts = "updated";
+    } else {
+      sts = "";
     }
-    var params = {
-      statusPick: sts,
-      notes: notes,
-      driverPick: true,
-      pickupId: id_pickup,
-      picture: dataImage,
-    };
-    console.log("params", params);
-    setIsLoading(true);
-    await postData(BASE_URL + SUBMIT_PICKUP_DRIVER, params, token)
-      .then((response) => {
-        console.log("response succes", response);
-        if (response.success == true) {
-          setIsLoading(false);
-          setIsModalSuccess(true);
-        } else {
-          setIsLoading(false);
-          setIsModalWarning(true);
-          setMessageModalWarning(response.message);
-        }
-      })
-      .catch((error) => {
-        console.log("response error", error);
-      });
+
+    if (sts != "") {
+      var params = {
+        statusPick: sts,
+        notes: notes,
+        driverPick: true,
+        pickupId: id_pickup,
+        picture: dataImage,
+      };
+      console.log("params", params);
+      setIsLoading(true);
+
+      await postData(BASE_URL + SUBMIT_PICKUP_DRIVER, params, token)
+        .then((response) => {
+          console.log("response succes", response);
+          if (response.success == true) {
+            setIsLoading(false);
+            setIsModalSuccess(true);
+          } else {
+            setIsLoading(false);
+            setIsModalWarning(true);
+            setMessageModalWarning(response.message);
+          }
+        })
+        .catch((error) => {
+          console.log("response error", error);
+        });
+    } else {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap pilih status pickup");
+    }
   };
 
   const uploadPhoto = async (value) => {
@@ -378,7 +436,6 @@ export default function DetailOrder({ navigation, route, props }) {
     await postData(BASE_URL + GET_ROUTE, params, token)
       .then((response) => {
         setIsLoading(false);
-        console.log("response getRoute", response);
         if (response.success == true) {
           var data_route = response.data;
           setIdRoute(data_route.id);
@@ -679,9 +736,9 @@ export default function DetailOrder({ navigation, route, props }) {
       await ImageResizer.createResizedImage(
         dataTmpImage.uri,
         500,
-        500,
+        300,
         "JPEG",
-        50,
+        10,
         0,
         undefined,
         false
@@ -689,21 +746,17 @@ export default function DetailOrder({ navigation, route, props }) {
         .then((response) => {
           console.log("onPicture=>>>>>>>>", response);
           dataTmpImage = response;
+          
           if (response.size < 10000) {
             i = 10;
-            console.log("onPicture upload=>>>>>>>>", response);
+            console.log("onPicture loop", i +" "+ response);
             uploadPhoto(dataTmpImage);
           }
-          // response.uri is the URI of the new image that can now be displayed, uploaded...
-          // response.path is the path of the new image
-          // response.name is the name of the new image with the extension
-          // response.size is the size of the new image
+          
         })
         .catch((err) => {
           console.log("onPicture error=>>>>>>>>", err);
 
-          // Oops, something went wrong. Check that the filename is correct and
-          // inspect err to get more details.
         });
     }
     console.log("onPicture", value);
@@ -748,13 +801,6 @@ export default function DetailOrder({ navigation, route, props }) {
         onPicture(response);
         // uploadFileToServer(response);
       }
-      // console.log('base64 -> ', response.base64);
-      // console.log('uri -> ', response.uri);
-      // console.log('width -> ', response.width);
-      // console.log('height -> ', response.height);
-      // console.log('fileSize -> ', response.fileSize);
-      // console.log('type -> ', response.type);
-      // console.log('fileName -> ', response.fileName);
     });
   };
 
@@ -803,7 +849,10 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const onPickup = (value) => {
-    if (status == "failed") {
+    if (uriImage == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi gambar");
+    } else if (status == "failed") {
       setModalVisible(true);
       // submitPickup();
     } else {
@@ -831,57 +880,66 @@ export default function DetailOrder({ navigation, route, props }) {
           // Alert.alert("Modal has been closed.");
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text
-              style={[styles.text_14, { color: "#A80002", fontWeight: "bold" }]}
-            >
-              Alasan Pembatalan
-            </Text>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => setModalVisible(false)}
+          style={styles.centeredView}
+        >
+          <TouchableWithoutFeedback>
+            <View style={styles.modalView}>
+              <Text
+                style={[
+                  styles.text_14,
+                  { color: "#A80002", fontWeight: "bold" },
+                ]}
+              >
+                Alasan Pembatalan
+              </Text>
 
-            <View
-              style={{
-                borderColor: "grey",
-                borderRadius: 10,
-                marginTop: verticalScale(10),
-                backgroundColor: "#F0F0F0",
-              }}
-            >
-              <TextInput
-                multiline={true}
-                numberOfLines={6}
-                value={reason}
-                onChangeText={(v) => setReason(v)}
-              ></TextInput>
-            </View>
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: verticalScale(16),
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => submitInReason()}
+              <View
                 style={{
-                  backgroundColor: "#A80002",
-                  paddingHorizontal: moderateScale(30),
-                  paddingVertical: moderateScale(10),
-                  borderRadius: moderateScale(50),
+                  borderColor: "grey",
+                  borderRadius: 10,
+                  marginTop: verticalScale(10),
+                  backgroundColor: "#F0F0F0",
                 }}
               >
-                <Text
-                  style={[
-                    styles.text_14,
-                    { color: "#FFFFFF", fontWeight: "bold" },
-                  ]}
+                <TextInput
+                  multiline={true}
+                  numberOfLines={6}
+                  value={reason}
+                  onChangeText={(v) => setReason(v)}
+                ></TextInput>
+              </View>
+              <View
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: verticalScale(16),
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => submitInReason()}
+                  style={{
+                    backgroundColor: "#A80002",
+                    paddingHorizontal: moderateScale(30),
+                    paddingVertical: moderateScale(10),
+                    borderRadius: moderateScale(50),
+                  }}
                 >
-                  SUBMIT
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.text_14,
+                      { color: "#FFFFFF", fontWeight: "bold" },
+                    ]}
+                  >
+                    SUBMIT
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
       </Modal>
     );
   };
@@ -1062,16 +1120,30 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const renderItem = ({ item, index }) => {
-    console.log("data", item);
     return (
       <View>
         <View style={{ flexDirection: "row", marginTop: verticalScale(8) }}>
-          <Text style={[styles.text_10, { flex: 1 }]}>{item.name}</Text>
-          <Text style={[styles.text_10, { flex: 0.6 }]}>{item.unit_count}</Text>
+          <Text
+            style={[styles.text_10, { flex: 1, fontFamily: "Montserrat-Bold" }]}
+          >
+            {item.name}
+          </Text>
           <Text
             style={[
               styles.text_10,
-              { flex: 0.6, marginLeft: moderateScale(5) },
+              { flex: 0.6, fontFamily: "Montserrat-Bold" },
+            ]}
+          >
+            {item.unit_count}
+          </Text>
+          <Text
+            style={[
+              styles.text_10,
+              {
+                flex: 0.6,
+                marginLeft: moderateScale(5),
+                fontFamily: "Montserrat-Bold",
+              },
             ]}
           >
             {item.weight + " " + item.weight_unit}
@@ -1079,15 +1151,24 @@ export default function DetailOrder({ navigation, route, props }) {
           <Text
             style={[
               styles.text_10,
-              { flex: 0.5, marginLeft: moderateScale(5) },
+              {
+                flex: 0.5,
+                marginLeft: moderateScale(5),
+                fontFamily: "Montserrat-Bold",
+              },
             ]}
           >
             {item.volume}
           </Text>
-          <Text style={[styles.text_10, { flex: 0.8 }]}>
+          <Text
+            style={[
+              styles.text_10,
+              { flex: 0.8, fontFamily: "Montserrat-Bold" },
+            ]}
+          >
             {item.service != null ? item.service.name : "-"}
           </Text>
-          {status_pickup != "success" && (
+          {status_pickup != "success" && status_pickup != "failed" && (
             <TouchableOpacity onPress={() => onEdit(2, item)}>
               <Image
                 style={{ width: moderateScale(15), height: moderateScale(15) }}
@@ -1096,7 +1177,7 @@ export default function DetailOrder({ navigation, route, props }) {
             </TouchableOpacity>
           )}
 
-          {status_pickup != "success" && (
+          {status_pickup != "success" && status_pickup != "failed" && (
             <TouchableOpacity onPress={() => onSelectDeleted(index, item)}>
               <Image
                 style={{ width: moderateScale(25), height: moderateScale(20) }}
@@ -1111,7 +1192,7 @@ export default function DetailOrder({ navigation, route, props }) {
   };
 
   const renderFooter = () => {
-    if (status_pickup == "success") {
+    if (status_pickup == "success" || status_pickup == "failed") {
       return <View></View>;
     } else {
       return (
@@ -1188,12 +1269,14 @@ export default function DetailOrder({ navigation, route, props }) {
               onChangeText={(v) => onNameItemChange(v)}
             ></TextInput>
 
-            <View style={{ flexDirection: "row" }}>
+            <View
+              style={{ flexDirection: "row", marginTop: moderateScale(10) }}
+            >
               <View style={{ flex: 1, marginRight: moderateScale(5) }}>
                 <Text style={styles.text_10}>Jumlah Barang</Text>
                 <TextInput
                   paddingLeft={moderateScale(12)}
-                  keyboardType="default"
+                  keyboardType="number-pad"
                   value={dataItemsTemporary.unit_count}
                   style={{
                     backgroundColor: "#F1F1F1",
@@ -1208,18 +1291,7 @@ export default function DetailOrder({ navigation, route, props }) {
 
               <View style={{ flex: 1, marginLeft: moderateScale(5) }}>
                 <Text style={styles.text_10}>Satuan</Text>
-                {/* <TextInput
-                  paddingLeft={moderateScale(12)}
-                  value={dataItemsTemporary.unit}
-                  style={{
-                    backgroundColor: "#F1F1F1",
-                    borderRadius: moderateScale(12),
-                    fontSize: 12,
-                    marginTop: verticalScale(5),
-                  }}
-                  placeholder="satuan"
-                  onChangeText={(value) => onUnitChange(value)}
-                ></TextInput> */}
+
                 <TouchableOpacity
                   onPress={() => selectUnits(0)}
                   style={{
@@ -1261,7 +1333,9 @@ export default function DetailOrder({ navigation, route, props }) {
               </View>
             </View>
 
-            <View style={{ flexDirection: "row" }}>
+            <View
+              style={{ flexDirection: "row", marginTop: moderateScale(10) }}
+            >
               <View style={{ flex: 1, marginRight: moderateScale(5) }}>
                 <Text style={styles.text_10}>Berat Total (Kg)</Text>
                 <TextInput
@@ -1279,7 +1353,9 @@ export default function DetailOrder({ navigation, route, props }) {
               </View>
             </View>
 
-            <View style={{ flexDirection: "row" }}>
+            <View
+              style={{ flexDirection: "row", marginTop: moderateScale(10) }}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={styles.text_10}>Jenis Barang</Text>
                 <TouchableOpacity
@@ -1326,7 +1402,7 @@ export default function DetailOrder({ navigation, route, props }) {
                 <Text style={styles.text_10}>Volume</Text>
                 <TextInput
                   paddingLeft={moderateScale(12)}
-                  keyboardType="default"
+                  keyboardType="number-pad"
                   value={dataItemsTemporary.volume}
                   style={{
                     backgroundColor: "#F1F1F1",
@@ -1340,7 +1416,9 @@ export default function DetailOrder({ navigation, route, props }) {
               </View>
             </View>
 
-            <Text style={styles.text_10}>Request Layanan</Text>
+            <Text style={[styles.text_10, { marginTop: moderateScale(10) }]}>
+              Request Layanan
+            </Text>
             <TouchableOpacity
               style={{ justifyContent: "center" }}
               onPress={() => selectService(0)}
@@ -1493,9 +1571,7 @@ export default function DetailOrder({ navigation, route, props }) {
           ></Image>
         </TouchableOpacity>
 
-        <Text style={styles.text_header}>
-          {detail_pickup != null ? detail_pickup.id : "-"}
-        </Text>
+        <Text style={styles.text_header}>{number}</Text>
       </View>
       <ScrollView>
         <View style={styles.container}>
@@ -1503,7 +1579,7 @@ export default function DetailOrder({ navigation, route, props }) {
           {renderModalPrint()}
           <View
             style={{
-              width: width - moderateScale(40),
+              width: width - moderateScale(20),
               padding: moderateScale(16),
               backgroundColor: "#FFFFFF",
               borderRadius: moderateScale(12),
@@ -1532,7 +1608,7 @@ export default function DetailOrder({ navigation, route, props }) {
                 },
               ]}
             >
-              Alamat Pengimputan
+              Alamat Penginputan
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={[styles.text_16, { flex: 1 }]}>
@@ -1585,7 +1661,7 @@ export default function DetailOrder({ navigation, route, props }) {
               >
                 Layanan
               </Text>
-              {status_pickup != "success" && (
+              {status_pickup != "success" && status_pickup != "failed" && (
                 <View
                   style={{
                     width: moderateScale(15),
@@ -1593,7 +1669,7 @@ export default function DetailOrder({ navigation, route, props }) {
                   }}
                 ></View>
               )}
-              {status_pickup != "success" && (
+              {status_pickup != "success" && status_pickup != "failed" && (
                 <View
                   style={{
                     width: moderateScale(25),
@@ -1613,16 +1689,16 @@ export default function DetailOrder({ navigation, route, props }) {
           </View>
           <View
             style={{
-              width: width - moderateScale(40),
+              width: width - moderateScale(20),
               marginTop: verticalScale(20),
               marginBottom: verticalScale(10),
             }}
           >
-            <Text>Status Pickup</Text>
+            <Text>Delivery</Text>
           </View>
           <View
             style={{
-              width: width - moderateScale(40),
+              width: width - moderateScale(20),
               paddingHorizontal: moderateScale(16),
               backgroundColor: "#FFFFFF",
               borderRadius: moderateScale(12),
@@ -1648,67 +1724,78 @@ export default function DetailOrder({ navigation, route, props }) {
                 <Picker.Item label="- Pilih -" value="" />
                 <Picker.Item key={0} label="sukses" value="success" />
                 <Picker.Item key={1} label="gagal" value="failed" />
-                <Picker.Item key={2} label="ada perubahan" value="updated" />
+                {/* <Picker.Item key={2} label="ada perubahan" value="updated" /> */}
               </Picker>
             )}
           </View>
 
           <View
             style={{
-              width: width - moderateScale(40),
+              width: width - moderateScale(20),
               marginTop: verticalScale(20),
               marginBottom: verticalScale(10),
             }}
           >
-            {status_pickup != "success" && (
-              <View>
-                <Text>Gambar</Text>
-                <View
-                  style={{
-                    width: width - moderateScale(40),
-                    height: verticalScale(200),
-                    marginVertical: verticalScale(8),
-                    borderRadius: moderateScale(20),
-                    backgroundColor: "#d5dedc",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+            {/* {status_pickup != "success" && status_pickup != "failed" && ( */}
+            <View>
+              <Text>Gambar</Text>
+              <View
+                style={{
+                  width: width - moderateScale(20),
+                  height: verticalScale(200),
+                  marginVertical: verticalScale(8),
+                  borderRadius: moderateScale(20),
+                  backgroundColor: "#d5dedc",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {uriImage != "" || dataPicture == "" ? (
                   <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                    {uriImage != "" ? (
-                      <Image
-                        style={{
-                          width: width - moderateScale(40),
-                          height: verticalScale(200),
-                          borderRadius: moderateScale(20),
-                        }}
-                        source={{ uri: uriImage }}
-                      ></Image>
-                    ) : (
-                      <Image
-                        style={{
-                          width: moderateScale(100),
-                          height: moderateScale(100),
-                          resizeMode: "stretch",
-                        }}
-                        source={require("../../../assets/image/photo_camera.png")}
-                      ></Image>
-                    )}
+                    <Image
+                      style={{
+                        width: width - moderateScale(20),
+                        height: verticalScale(200),
+                        borderRadius: moderateScale(5),
+                        resizeMode: "center",
+                      }}
+                      source={
+                        uriImage != ""
+                          ? { uri: uriImage }
+                          : require("../../../assets/image/photo_camera.png")
+                      }
+                    ></Image>
                   </TouchableOpacity>
-                </View>
+                ) : (
+                  <Image
+                    style={{
+                      width: width - moderateScale(20),
+                      height: verticalScale(200),
+                      borderRadius: moderateScale(5),
+                      resizeMode: "contain",
+                    }}
+                    source={
+                      dataPicture != ""
+                        ? { uri: BASE_URL + "storage" + dataPicture }
+                        : require("../../../assets/image/photo_camera.png")
+                    }
+                  ></Image>
+                )}
               </View>
-            )}
+            </View>
 
-            {status_pickup == "success"  ? (
+            {status_pickup == "success" && (
               <TouchableOpacity
                 onPress={() => onPrint()}
                 style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
               >
-                <Text style={[styles.text_14, { color: "#000000" }]}>
+                <Text style={[styles.text_14_bold, { color: "#000000" }]}>
                   Cetak
                 </Text>
               </TouchableOpacity>
-            ) : (
+            )}
+
+            {status_pickup != "success" && status_pickup != "failed" &&  status_pickup != "updated" && (
               <TouchableOpacity
                 onPress={() => onPickup()}
                 style={styles.button_primary}
@@ -1813,7 +1900,7 @@ const styles = StyleSheet.create({
   button_primary: {
     flex: 1,
     height: verticalScale(40),
-    width: width - moderateScale(40),
+    width: width - moderateScale(20),
     backgroundColor: "#A80002",
     borderRadius: 20,
     marginTop: verticalScale(8),

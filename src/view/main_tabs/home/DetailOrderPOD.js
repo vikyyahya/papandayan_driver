@@ -10,10 +10,12 @@ import {
   BASE_URL,
   DETAIL_PICKUP_DRIVER,
   SUBMIT_POD,
+  UPDATE_POD,
   ALLUNIT,
   SERVICE,
   EDIT_ITEM_DRIVER,
   UPLOAD_PICTURE_POP,
+  PICTURE_POD,
   postData,
   getData,
   postFormData,
@@ -76,6 +78,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const [data_picture, setDataPicture] = useState();
   const [dataImage, setDataImage] = useState("");
   const [uriImage, setUriImage] = useState("");
+  const [dataPicture, setDataPictureURL] = useState("");
 
   const [dataItemsTemporary, setDataTemp] = useState({
     unit_id: "",
@@ -108,7 +111,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   const [selectedValue, setSelectedValue] = React.useState("ble");
   const [isBluetooth, setIsBluetooth] = React.useState(false);
 
-  console.log("status_pickup", status_pickup);
+  console.log("status_pickup 111", status_pickup);
 
   const refBottomSheet = useRef(null);
 
@@ -149,10 +152,9 @@ export default function DetailOrderPOD({ navigation, route, props }) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      // getUrlVoice();
       getPickupPlan();
-      // getAllUnit();
       getAllServices();
+      getPicture();
     });
     return unsubscribe;
   }, []);
@@ -197,6 +199,57 @@ export default function DetailOrderPOD({ navigation, route, props }) {
       });
   };
 
+  const onReason = () => {
+    if (reason == "") {
+      if (status == "failed") {
+        setMessageModalWarning("Harap isi alasan gagal pengiriman");
+      } else {
+        setMessageModalWarning("Harap isi alasan pengiriman ulang");
+      }
+      setIsModalWarning(true);
+    } else {
+      if (status_pickup == "") {
+        submitPickup();
+      } else {
+        updatePOD();
+      }
+    }
+  };
+
+  const updatePOD = async () => {
+    var token = await getValue(TOKEN);
+    var params = {
+      statusDelivery: status,
+      notes: reason,
+      pickupId: id_pickup,
+      mode: "submitted",
+    };
+    console.log("param updatePOD ", params);
+    if (status != "") {
+      setIsLoading(true);
+      await postData(BASE_URL + UPDATE_POD, params, token)
+        .then((response) => {
+          console.log("response updatePOD", response);
+          if (response.success == true) {
+            setIsLoading(false);
+            setIsModalSuccess(true);
+          } else {
+            setIsLoading(false);
+            setIsModalWarning(true);
+            setMessageModalWarning(response.message);
+          }
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          setIsModalWarning(true);
+          setMessageModalWarning("Maaf terjadi kendala teknis");
+        });
+    } else {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap Pilih Status");
+    }
+  };
+
   const submitPickup = async (value) => {
     setModalVisible(false);
     var token = await getValue(TOKEN);
@@ -205,33 +258,44 @@ export default function DetailOrderPOD({ navigation, route, props }) {
       sts = "success";
     } else if (status == "failed") {
       sts = "failed";
-    } else {
+    } else if (status == "re-delivery") {
       sts = "re-delivery";
+    } else {
+      sts = "";
     }
-    var params = {
-      statusDelivery: sts,
-      notes: notes,
-      pickupId: id_pickup,
-      picture: dataImage,
-    };
-    console.log("params", params);
-    console.log("params2", token);
-    setIsLoading(true);
-    await postData(BASE_URL + SUBMIT_POD, params, token)
-      .then((response) => {
-        console.log("response succes", response);
-        if (response.success == true) {
-          setIsLoading(false);
-          setIsModalSuccess(true);
-        } else {
+
+    if (sts != "") {
+      var params = {
+        statusDelivery: sts,
+        notes: reason,
+        pickupId: id_pickup,
+        picture: dataImage,
+      };
+      console.log("params", params);
+      console.log("params2", token);
+      setIsLoading(true);
+
+      await postData(BASE_URL + SUBMIT_POD, params, token)
+        .then((response) => {
+          console.log("response succes", response);
+          if (response.success == true) {
+            setIsLoading(false);
+            setIsModalSuccess(true);
+          } else {
+            setIsLoading(false);
+            setIsModalWarning(true);
+            setMessageModalWarning(response.message);
+          }
+        })
+        .catch((error) => {
           setIsLoading(false);
           setIsModalWarning(true);
-          setMessageModalWarning(response.message);
-        }
-      })
-      .catch((error) => {
-        console.log("response error", error);
-      });
+          setMessageModalWarning("Maaf terjadi kendala teknis");
+        });
+    } else {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap Pilih Status");
+    }
   };
 
   const uploadPhoto = async (value) => {
@@ -260,11 +324,36 @@ export default function DetailOrderPOD({ navigation, route, props }) {
       });
   };
 
+  const customSort = (a, b) => {
+    console.log("customSort");
+    // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return moment(b.created_at) - moment(a.created_at);
+  };
+
+  const getPicture = async () => {
+    var token = await getValue(TOKEN);
+    setIsLoading(true);
+    var params = {
+      pickupId: id_pickup,
+      docs: "proof-of-delivery",
+    };
+    console.log("getPicture", params);
+
+    await postData(BASE_URL + PICTURE_POD, params, token)
+      .then((response) => {
+        console.log("response getPicture", response.data);
+        setIsLoading(false);
+
+        if (response.success == true) {
+          setDataPictureURL(response.data[0].picture);
+        }
+      })
+      .catch((error) => {});
+  };
+
   const getPickupPlan = async (id) => {
     var token = await getValue(TOKEN);
     setIsLoading(true);
-    console.log("response token", token);
-    var date = moment("2021-03-03").format("YYYY-MM-DD");
     var params = {
       pickupId: id_pickup,
     };
@@ -272,7 +361,6 @@ export default function DetailOrderPOD({ navigation, route, props }) {
     await postData(BASE_URL + DETAIL_PICKUP_DRIVER, params, token).then(
       (response) => {
         setIsLoading(false);
-        console.log("response getPIckup detail", response);
         if (response.success == true) {
           var sender = response.data.sender;
           setDataDetailPickup(response.data);
@@ -287,7 +375,10 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               " " +
               sender.province
           );
-          setDataItem(response.data.items);
+          var a = [];
+          a = response.data.items;
+          a.sort(customSort);
+          setDataItem(a);
           console.log("response getPIckup detail", response.data);
         } else if (response.message == "Unauthenticated.") {
           goLogout();
@@ -446,13 +537,12 @@ export default function DetailOrderPOD({ navigation, route, props }) {
     var dataTmpImage = value;
 
     for (var i = 0; i < 10; i++) {
-      console.log("ajska", i);
       await ImageResizer.createResizedImage(
         dataTmpImage.uri,
         500,
-        500,
+        300,
         "JPEG",
-        50,
+        10,
         0,
         undefined,
         false
@@ -460,24 +550,17 @@ export default function DetailOrderPOD({ navigation, route, props }) {
         .then((response) => {
           console.log("onPicture=>>>>>>>>", response);
           dataTmpImage = response;
+
           if (response.size < 10000) {
             i = 10;
-            console.log("onPicture upload=>>>>>>>>", response);
+            console.log("onPicture loop", i + " " + response);
             uploadPhoto(dataTmpImage);
           }
-          // response.uri is the URI of the new image that can now be displayed, uploaded...
-          // response.path is the path of the new image
-          // response.name is the name of the new image with the extension
-          // response.size is the size of the new image
         })
         .catch((err) => {
           console.log("onPicture error=>>>>>>>>", err);
-
-          // Oops, something went wrong. Check that the filename is correct and
-          // inspect err to get more details.
         });
     }
-
     console.log("onPicture", value);
   };
 
@@ -577,9 +660,13 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   };
 
   const onPickup = (value) => {
-    if (status == "re-delivery") {
+    if (uriImage == "" && dataPicture == "") {
+      setIsModalWarning(true);
+      setMessageModalWarning("Harap isi gambar");
+    } else if (status == "re-delivery" || status_pickup == "re-delivery") {
       setModalVisible(true);
-      // submitPickup();
+    } else if (status == "failed" || status_pickup == "failed") {
+      setModalVisible(true);
     } else {
       submitPickup(value);
     }
@@ -605,58 +692,67 @@ export default function DetailOrderPOD({ navigation, route, props }) {
           // Alert.alert("Modal has been closed.");
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text
-              style={[styles.text_14, { color: "#A80002", fontWeight: "bold" }]}
-            >
-              Alasan Pengiriman Ulang
-            </Text>
+        <TouchableOpacity
+          onPress={() => setModalVisible(false)}
+          activeOpacity={0.9}
+          style={styles.centeredView}
+        >
+          <TouchableWithoutFeedback>
+            <View style={styles.modalView}>
+              <Text
+                style={[
+                  styles.text_14,
+                  { color: "#A80002", fontWeight: "bold" },
+                ]}
+              >
+                Alasan
+              </Text>
 
-            <View
-              style={{
-                borderColor: "grey",
-                borderRadius: 10,
-                marginTop: verticalScale(10),
-                backgroundColor: "#F0F0F0",
-              }}
-            >
-              <TextInput
-                multiline={true}
-                numberOfLines={6}
-                value={reason}
-                textAlignVertical="top"
-                onChangeText={(v) => setReason(v)}
-              ></TextInput>
-            </View>
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: verticalScale(16),
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => submitPickup()}
+              <View
                 style={{
-                  backgroundColor: "#A80002",
-                  paddingHorizontal: moderateScale(30),
-                  paddingVertical: moderateScale(10),
-                  borderRadius: moderateScale(50),
+                  borderColor: "grey",
+                  borderRadius: 10,
+                  marginTop: verticalScale(10),
+                  backgroundColor: "#F0F0F0",
                 }}
               >
-                <Text
-                  style={[
-                    styles.text_14,
-                    { color: "#FFFFFF", fontWeight: "bold" },
-                  ]}
+                <TextInput
+                  multiline={true}
+                  numberOfLines={6}
+                  value={reason}
+                  textAlignVertical="top"
+                  onChangeText={(v) => setReason(v)}
+                ></TextInput>
+              </View>
+              <View
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: verticalScale(16),
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => onReason()}
+                  style={{
+                    backgroundColor: "#A80002",
+                    paddingHorizontal: moderateScale(30),
+                    paddingVertical: moderateScale(10),
+                    borderRadius: moderateScale(50),
+                  }}
                 >
-                  SUBMIT
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.text_14,
+                      { color: "#FFFFFF", fontWeight: "bold" },
+                    ]}
+                  >
+                    SUBMIT
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
       </Modal>
     );
   };
@@ -785,7 +881,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
   };
 
   const renderItem = ({ item, index }) => {
-    console.log("data", item);
+    // console.log("data", item);
     return (
       <View>
         <View style={{ flexDirection: "row", marginTop: verticalScale(8) }}>
@@ -1126,7 +1222,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
                 },
               ]}
             >
-              Alamat Pengimputan
+              Alamat Penginputan
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={[styles.text_16, { flex: 1 }]}>
@@ -1188,7 +1284,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               marginBottom: verticalScale(10),
             }}
           >
-            <Text>Status Pickup</Text>
+            <Text>Delivery</Text>
           </View>
           <View
             style={{
@@ -1198,11 +1294,11 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               borderRadius: moderateScale(12),
             }}
           >
-            {status_pickup == "success" ? (
+            {status_pickup == "success" || status_pickup == "failed" ? (
               <Text
                 style={[styles.text_12, { marginVertical: verticalScale(10) }]}
               >
-                Sukses
+                {status_pickup == "success" ? "Sukses" : "Gagal"}
               </Text>
             ) : (
               <Picker
@@ -1233,46 +1329,64 @@ export default function DetailOrderPOD({ navigation, route, props }) {
               marginBottom: verticalScale(10),
             }}
           >
-            {status_pickup != "success" && (
-              <View>
-                <Text>Gambar</Text>
+            <View>
+              <Text>Gambar</Text>
 
-                <View
-                  style={{
-                    width: width - moderateScale(40),
-                    height: verticalScale(200),
-                    marginVertical: verticalScale(8),
-                    borderRadius: moderateScale(20),
-                    backgroundColor: "#d5dedc",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+              <View
+                style={{
+                  width: width - moderateScale(40),
+                  height: verticalScale(200),
+                  marginVertical: verticalScale(8),
+                  borderRadius: moderateScale(20),
+                  backgroundColor: "#d5dedc",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {uriImage != "" || dataPicture == "" ? (
                   <TouchableOpacity onPress={() => setIsEditPhoto(true)}>
-                    {uriImage != "" ? (
-                      <Image
-                        style={{
-                          width: width - moderateScale(40),
-                          height: verticalScale(200),
-                          borderRadius: moderateScale(20),
-                        }}
-                        source={{ uri: uriImage }}
-                      ></Image>
-                    ) : (
-                      <Image
-                        style={{
-                          width: moderateScale(100),
-                          height: moderateScale(100),
-                          resizeMode: "stretch",
-                        }}
-                        source={require("../../../assets/image/photo_camera.png")}
-                      ></Image>
-                    )}
+                    <Image
+                      style={{
+                        width: width - moderateScale(40),
+                        height: verticalScale(200),
+                        borderRadius: moderateScale(5),
+                        resizeMode: "contain",
+                      }}
+                      source={
+                        uriImage != ""
+                          ? { uri: uriImage }
+                          : require("../../../assets/image/photo_camera.png")
+                      }
+                    ></Image>
                   </TouchableOpacity>
-                </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() =>
+                      status_pickup == "failed"
+                        ? setIsEditPhoto(false)
+                        : setIsEditPhoto(true)
+                    }
+                  >
+                    <Image
+                      style={{
+                        width: width - moderateScale(40),
+                        height: verticalScale(200),
+                        borderRadius: moderateScale(5),
+                        resizeMode: "contain",
+                      }}
+                      // source={require("../../../assets/image/photo_camera.png")}
+                      source={
+                        dataPicture != ""
+                          ? { uri: BASE_URL + "storage" + dataPicture }
+                          : require("../../../assets/image/photo_camera.png")
+                      }
+                    ></Image>
+                  </TouchableOpacity>
+                )}
               </View>
-            )}
-            {status_pickup != "success" && (
+            </View>
+
+            {status_pickup != "success" && status_pickup != "failed" && (
               <TouchableOpacity
                 onPress={() => onPickup()}
                 style={styles.button_primary}
@@ -1288,7 +1402,7 @@ export default function DetailOrderPOD({ navigation, route, props }) {
                 onPress={() => onPrint()}
                 style={[styles.button_primary, { backgroundColor: "#FFFFFF" }]}
               >
-                <Text style={[styles.text_14, { color: "#000000" }]}>
+                <Text style={[styles.text_14_bold, { color: "#000000" }]}>
                   Cetak
                 </Text>
               </TouchableOpacity>

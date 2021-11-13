@@ -72,6 +72,7 @@ export default function ListOrderPOD({ navigation, route }) {
     await postData(BASE_URL + DASHBOARD_POD, parans, token)
       .then((response) => {
         setIsLoading(false);
+
         if (response.success == true) {
           setKg(response.data.weight);
           setVolume(response.data.volume);

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const BASE_URL = "https://backend.papandayancargo.id/";
-export const LOGIN = "api/login";
+export const LOGIN = "api/login-driver";
 export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
 export const LIST_POD = "api/driver/shipment-plan/list";
 export const TOTAL_POD = "api/driver/pod/dashboard";
@@ -11,6 +11,8 @@ export const GET_SHIPMENT_PLANE = "api/driver/shipment-plan/pickup";
 export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
 export const SUBMIT_PICKUP_DRIVER = "api/driver/pop/create";
 export const SUBMIT_POD = "api/driver/pod/submit";
+export const UPDATE_POD = "api/driver/pod/update";
+export const PICTURE_POD = "api/tracking/get-picture";
 export const TOTAL_VOL_DRIVER = "api/driver/pickup/total-volume-kilo";
 export const DASHBOARD_POD = "api/driver/shipment-plan/dashboard";
 export const EDIT_ITEM_DRIVER = "api/driver/item/update";
@@ -39,6 +41,8 @@ export const PICKUP = "api/pickup";
 export const PROMO = "api/promo/user";
 export const SELECT_PROMO = "api/promo/select";
 export const CALCULATE = "api/bill/calculate";
+export const FORGOTPASS = "api/user/forgot-password";
+
 
 export const postData = async (url, data, token) => {
   try {
