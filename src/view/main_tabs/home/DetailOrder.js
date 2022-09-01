@@ -1694,7 +1694,7 @@ export default function DetailOrder({ navigation, route, props }) {
               marginBottom: verticalScale(10),
             }}
           >
-            <Text>Delivery</Text>
+            <Text>Status Pickup</Text>
           </View>
           <View
             style={{
@@ -1704,11 +1704,11 @@ export default function DetailOrder({ navigation, route, props }) {
               borderRadius: moderateScale(12),
             }}
           >
-            {status_pickup == "success" ? (
+            {status_pickup == "success" || status_pickup == "failed" ? (
               <Text
                 style={[styles.text_12, { marginVertical: verticalScale(10) }]}
               >
-                Sukses
+                {status_pickup == "success" ? "Sukses" : "Gagal"}
               </Text>
             ) : (
               <Picker

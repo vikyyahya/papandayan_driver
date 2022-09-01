@@ -167,10 +167,25 @@ export default function Home({ navigation, route }) {
     var applied = 0;
     var updated = 0;
     var failed = 0;
+    var success = 0;
     data_pickup = item.pickups;
 
-    if(data_pickup.length > 0){
-
+    if (data_pickup.length > 0) {
+      for (var i = 0; i < data_pickup.length; i++) {
+        var tmp = [];
+        tmp = item.pickups[i].proof_of_pickups;
+        console.log("data------", tmp);
+        if (tmp.length > 0) {
+          if (item.pickups[i].proof_of_pickups[0].status_pick == "success") {
+            applied += 1;
+            success += 1;
+          } else if (
+            item.pickups[i].proof_of_pickups[0].status_pick == "failed"
+          ) {
+            applied += 1;
+          }
+        }
+      }
     }
 
     return (
@@ -201,7 +216,8 @@ export default function Home({ navigation, route }) {
           style={{
             width: moderateScale(4),
             height: verticalScale(16),
-            backgroundColor: "#A80002",
+            backgroundColor:
+              applied == success && applied != 0 ? "#1EB448" : "#A80002",
           }}
         ></View>
         <Image
@@ -210,7 +226,11 @@ export default function Home({ navigation, route }) {
             height: moderateScale(48),
             marginHorizontal: moderateScale(12),
           }}
-          source={require("../../../assets/image/ic_box_red.png")}
+          source={
+            applied == success && applied != 0
+              ? require("../../../assets/image/ic_box_green.png")
+              : require("../../../assets/image/ic_box_red.png")
+          }
         ></Image>
         <View>
           <Text style={styles.text_14_bold}>{item.number}</Text>
@@ -230,10 +250,23 @@ export default function Home({ navigation, route }) {
             marginHorizontal: moderateScale(12),
           }}
         >
-          <Text style={styles.text_12}>
-            {/* <Text style={[styles.text_12_bold, { color: "#A80002" }]}>1</Text>/{" "} */}
-            {item.total_pickup_order}
-          </Text>
+          {applied == success && applied != 0 ? (
+            <Image
+              style={{
+                width: moderateScale(30),
+                height: moderateScale(30),
+                marginHorizontal: moderateScale(12),
+              }}
+              source={require("../../../assets/image/ic_check_success.png")}
+            ></Image>
+          ) : (
+            <Text style={styles.text_12}>
+              <Text style={[styles.text_12_bold, { color: "#A80002" }]}>
+                {applied}{" "}
+              </Text>
+              / {item.total_pickup_order}
+            </Text>
+          )}
         </View>
         <Image
           style={{

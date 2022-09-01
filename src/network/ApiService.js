@@ -4,8 +4,10 @@ export const BASE_URL = "https://backend.papandayancargo.id/";
 export const LOGIN = "api/login-driver";
 export const PICKUP_DRIVER = "api/driver/pickup-plan/list";
 export const LIST_POD = "api/driver/shipment-plan/list";
+
 export const TOTAL_POD = "api/driver/pod/dashboard";
 export const TOTAL_POP = "api/driver/pop/dashboard";
+
 export const GET_BY_PICKUP_PLANE = "api/driver/pickup/get-by-pickup-plan";
 export const GET_SHIPMENT_PLANE = "api/driver/shipment-plan/pickup";
 export const DETAIL_PICKUP_DRIVER = "api/driver/pickup/detail";
